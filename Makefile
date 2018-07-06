@@ -7,8 +7,10 @@ help:
 FAKE_C = $(PWD)/fake-android-application/fake-android-application.c
 FAKE_H = $(PWD)/fake-android-application/fake-android-application.h
 FAKE_OBJS = $(patsubst %.c,%.o,$(FAKE_C))
-FAKE_CFLAGS = `pkg-config mx-2.0 libsoup-2.4 gdk-pixbuf-2.0 --cflags` -D_PC_VERSION=1 -include $(FAKE_H) -I ohand/jni
-FAKE_LIBS = `pkg-config mx-2.0 libsoup-2.4 gdk-pixbuf-2.0 --libs` -lm
+#FAKE_CFLAGS = `pkg-config mx-2.0 libsoup-2.4 gdk-pixbuf-2.0 --cflags` -D_PC_VERSION=1 -include $(FAKE_H) -I ohand/jni
+#FAKE_LIBS = `pkg-config mx-2.0 libsoup-2.4 gdk-pixbuf-2.0 --libs` -lm
+FAKE_CFLAGS = `pkg-config libsoup-2.4 gdk-pixbuf-2.0 --cflags` -D_PC_VERSION=1 -include $(FAKE_H) -I app/jni
+FAKE_LIBS = `pkg-config libsoup-2.4 gdk-pixbuf-2.0 --libs` -lm
 
 $(FAKE_OBJS): $(FAKE_C)
 	@echo "  CC     `basename $@`"
@@ -26,6 +28,19 @@ ohand-app-full:
 	cd $(PWD)/ohand && ndk-build
 	cd $(PWD)/ohand && ant debug
 	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
+
+inferno-full:
+#	export NDK_MODULE_PATH=$(PWD)
+	android update project -p $(PWD)/app --target 1
+	cd $(PWD)/app && ndk-build
+	cd $(PWD)/app && ant debug
+#	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
+
+inferno:
+#	export NDK_MODULE_PATH=$(PWD)
+	cd $(PWD)/app && ndk-build
+	cd $(PWD)/app && ant debug
+#	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
 OHAND_FILES = $(shell cat $(PWD)/ohand/jni/Android.mk | grep LOCAL_SRC_FILES | cut -d = -f 2)
 OHAND_SOURCES = $(addprefix $(PWD)/ohand/jni/, $(OHAND_FILES))

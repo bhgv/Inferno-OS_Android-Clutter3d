@@ -1,0 +1,11 @@
+--- jhbuild/modtypes/__init__.py
++++ jhbuild/modtypes/__init__.py
+@@ -254,7 +254,7 @@ them into the prefix."""
+     def process_install(self, buildscript, revision):
+         assert self.supports_install_destdir
+         destdir = self.get_destdir(buildscript)
+-        self._clean_la_files(buildscript, destdir)
++        #self._clean_la_files(buildscript, destdir)
+ 
+         stripped_prefix = buildscript.config.prefix[1:]
+ 

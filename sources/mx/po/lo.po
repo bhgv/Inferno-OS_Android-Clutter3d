@@ -1,0 +1,93 @@
+# Laotian translations for mx package.
+# Copyright (C) 2009 THE mx'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the mx package.
+# Neil Roberts <neil@linux.intel.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mx 1.1.2\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-02-26 12:45+0000\n"
+"PO-Revision-Date: 2009-09-09 15:10+0100\n"
+"Last-Translator: Anousak Souphavanh <anousak@gmail.com>\n"
+"Language-Team: Lao <lo@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: mx/mx-gtk-light-switch.c:232
+msgid "Unavailable"
+msgstr ""
+
+#. TRANSLATORS: If this string takes more than four or five characters in
+#. * your language, please use the MEDIUM VERTICAL BAR unicode character
+#. * instead
+#: mx/mx-gtk-light-switch.c:252 mx/mx-gtk-light-switch.c:326
+msgid "On"
+msgstr ""
+
+#. Draw the second label; "Off"
+#. TRANSLATORS: If this string takes more than four or five characters in
+#. * your language, please use the WHITE CIRCLE U+25CB unicode character
+#. * instead
+#: mx/mx-gtk-light-switch.c:271 mx/mx-gtk-light-switch.c:324
+msgid "Off"
+msgstr ""
+
+#: mx/mx-utils.c:93
+msgid "Less than a minute ago"
+msgstr ""
+
+#: mx/mx-utils.c:97
+msgid "A few minutes ago"
+msgstr ""
+
+#: mx/mx-utils.c:101
+msgid "A couple of hours ago"
+msgstr ""
+
+#: mx/mx-utils.c:108
+msgid "Earlier today"
+msgstr "ເຊົ້າມື່ນີ້"
+
+#: mx/mx-utils.c:111
+msgid "Yesterday"
+msgstr "ມື້ວານນີ້"
+
+#: mx/mx-utils.c:119
+#, c-format
+msgid "On %A"
+msgstr "ໃນ %A"
+
+#: mx/mx-utils.c:125
+msgid "Unknown"
+msgstr "ບໍ່ຮູ້"
+
+#: mx/mx-utils.c:132
+msgid "Last week"
+msgstr "ອາທິດພານມາ"
+
+#: mx/mx-utils.c:135
+msgid "A couple of weeks ago"
+msgstr ""
+
+#: mx/mx-utils.c:141
+msgid "This month"
+msgstr "ເດືອນນີ້"
+
+#. Now Jan., last used in Dec.
+#: mx/mx-utils.c:145
+msgid "Last month"
+msgstr "ເດືອນກ່ອນ"
+
+#: mx/mx-utils.c:148
+msgid "This year"
+msgstr "ປີນີ້"
+
+#: mx/mx-utils.c:151
+msgid "Last year"
+msgstr "ປີກອນ"
+
+#: mx/mx-utils.c:153
+msgid "Ages ago"
+msgstr ""

@@ -1,0 +1,87 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libsoup gnome\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-09-22 15:16+0300\n"
+"PO-Revision-Date: 2012-09-22 15:17+0200\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: Hebrew <sh.yaron@gmail.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: Hebrew\n"
+"X-Poedit-Country: ISRAEL\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../libsoup/soup-body-input-stream.c:141
+#: ../libsoup/soup-body-input-stream.c:172
+#: ../libsoup/soup-body-input-stream.c:205
+#: ../libsoup/soup-message-io.c:191
+msgid "Connection terminated unexpectedly"
+msgstr "החיבור הופסק באופן בלתי צפוי"
+
+#: ../libsoup/soup-body-input-stream.c:461
+msgid "Invalid seek request"
+msgstr "בקשת חיפוש שגויה"
+
+#: ../libsoup/soup-body-input-stream.c:489
+msgid "Cannot truncate SoupBodyInputStream"
+msgstr "לא ניתן לקצץ את SoupBodyInputStream"
+
+#: ../libsoup/soup-converter-wrapper.c:192
+#, c-format
+msgid "Output buffer is too small"
+msgstr "אוגר הפלט קטן מדי"
+
+#: ../libsoup/soup-message-io.c:818
+#: ../libsoup/soup-message-io.c:854
+msgid "Operation was cancelled"
+msgstr "הפעולה בוטלה"
+
+#: ../libsoup/soup-message-io.c:865
+msgid "Operation would block"
+msgstr "הפעולה תיחסם"
+
+#: ../libsoup/soup-request.c:142
+#, c-format
+msgid "No URI provided"
+msgstr "לא סופקה כתובת"
+
+#: ../libsoup/soup-request.c:152
+#, c-format
+msgid "Invalid '%s' URI: %s"
+msgstr "כתובת '%s' שגויה: %s"
+
+#: ../libsoup/soup-requester.c:219
+#, c-format
+msgid "Could not parse URI '%s'"
+msgstr "לא ניתן לנתח את הכתובת '%s'"
+
+#: ../libsoup/soup-requester.c:253
+#, c-format
+msgid "Unsupported URI scheme '%s'"
+msgstr "תבנית הכתובת אינה נתמכת '%s'"
+
+#: ../libsoup/soup-tld.c:154
+msgid "Hostname is an IP address"
+msgstr "שם המארח הוא כתובת IP"
+
+#: ../libsoup/soup-tld.c:175
+msgid "Invalid hostname"
+msgstr "שם מארח שגוי"
+
+#: ../libsoup/soup-tld.c:204
+msgid "Hostname has no base domain"
+msgstr "לשם המארח אין שם מתחם בסיסי"
+
+#: ../libsoup/soup-tld.c:226
+msgid "Not enough domains"
+msgstr "אין מספיק שמות מתחם"
+

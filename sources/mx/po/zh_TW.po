@@ -1,0 +1,85 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-17 09:40+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Chinese\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../mx/mx-application.c:311
+msgid "Raise application"
+msgstr "抬升應用程式"
+
+#: ../mx/mx-gtk-light-switch.c:96
+msgid "Unavailable"
+msgstr "不可用"
+
+#: ../mx/mx-utils.c:94
+msgid "Less than a minute ago"
+msgstr "少於一分鐘時"
+
+#: ../mx/mx-utils.c:98
+msgid "A few minutes ago"
+msgstr "幾分鐘前"
+
+#: ../mx/mx-utils.c:102
+msgid "A couple of hours ago"
+msgstr "幾小時前"
+
+#: ../mx/mx-utils.c:109
+msgid "Earlier today"
+msgstr "今日早些時候"
+
+#: ../mx/mx-utils.c:112
+msgid "Yesterday"
+msgstr "昨天"
+
+#: ../mx/mx-utils.c:120
+#, c-format
+msgid "On %A"
+msgstr "在 %A"
+
+#: ../mx/mx-utils.c:126
+msgid "Unknown"
+msgstr "不明"
+
+#: ../mx/mx-utils.c:133
+msgid "Last week"
+msgstr "上禮拜"
+
+#: ../mx/mx-utils.c:136
+msgid "A couple of weeks ago"
+msgstr "幾週以前"
+
+#: ../mx/mx-utils.c:142
+msgid "This month"
+msgstr "這個月"
+
+#. Now Jan., last used in Dec.
+#: ../mx/mx-utils.c:146
+msgid "Last month"
+msgstr "上個月"
+
+#: ../mx/mx-utils.c:149
+msgid "This year"
+msgstr "今年"
+
+#: ../mx/mx-utils.c:152
+msgid "Last year"
+msgstr "去年"
+
+#: ../mx/mx-utils.c:154
+msgid "Ages ago"
+msgstr "好幾年前"
+
+#~ msgid "On"
+#~ msgstr "啟動"
+#~ msgid "Off"
+#~ msgstr "關閉"
+

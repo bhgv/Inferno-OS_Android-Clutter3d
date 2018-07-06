@@ -1,0 +1,86 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-17 09:40+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Annika <AnnikaNbpt@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Swedish\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"Plural-Forms: nplurals=2; plural=n!=1;\n"
+
+#: ../mx/mx-application.c:311
+msgid "Raise application"
+msgstr "Öppna program"
+
+#: ../mx/mx-gtk-light-switch.c:96
+msgid "Unavailable"
+msgstr "Otillgänglig"
+
+#: ../mx/mx-utils.c:94
+msgid "Less than a minute ago"
+msgstr "Mindre än för en minut sedan"
+
+#: ../mx/mx-utils.c:98
+msgid "A few minutes ago"
+msgstr "Ett par minuter sedan"
+
+#: ../mx/mx-utils.c:102
+msgid "A couple of hours ago"
+msgstr "Ett par timmar sedan"
+
+#: ../mx/mx-utils.c:109
+msgid "Earlier today"
+msgstr "Tidigare idag"
+
+#: ../mx/mx-utils.c:112
+msgid "Yesterday"
+msgstr "Igår"
+
+#: ../mx/mx-utils.c:120
+#, c-format
+msgid "On %A"
+msgstr "På %A"
+
+#: ../mx/mx-utils.c:126
+msgid "Unknown"
+msgstr "Okänd enhet"
+
+#: ../mx/mx-utils.c:133
+msgid "Last week"
+msgstr "Förra veckan"
+
+#: ../mx/mx-utils.c:136
+msgid "A couple of weeks ago"
+msgstr "Ett par veckor sedan"
+
+#: ../mx/mx-utils.c:142
+msgid "This month"
+msgstr "Denna månad"
+
+#. Now Jan., last used in Dec.
+#: ../mx/mx-utils.c:146
+msgid "Last month"
+msgstr "Förra månaden"
+
+#: ../mx/mx-utils.c:149
+msgid "This year"
+msgstr "Innevarande år"
+
+#: ../mx/mx-utils.c:152
+msgid "Last year"
+msgstr "Föregående år"
+
+#: ../mx/mx-utils.c:154
+msgid "Ages ago"
+msgstr "För länge sedan"
+
+#~ msgid "On"
+#~ msgstr "På"
+
+#~ msgid "Off"
+#~ msgstr "Av"

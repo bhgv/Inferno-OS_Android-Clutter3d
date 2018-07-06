@@ -1,8 +1,8 @@
 android-ndk-*
 android-sdk-linux
 install
-sources
+#sources
 toolchain
-jhbuild
+#jhbuild
 .local
 fake-android-application/fake-android-application.o

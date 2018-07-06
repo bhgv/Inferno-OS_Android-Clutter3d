@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+apiversion=@GA_API_VERSION@
+requires=@GA_REQUIRES@
+
+Name: GLib-Android
+Description: Android integration library for GLib
+Version: @VERSION@
+Libs: -L${libdir} -lglib-android-${apiversion}
+Cflags: -I${includedir}/glib-android-${apiversion}
+Requires: ${requires}

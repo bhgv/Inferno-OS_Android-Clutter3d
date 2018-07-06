@@ -1,0 +1,781 @@
+1.99.1
+======
+
+Changes since 1.99.0
+
+  * Ensure that 1.0 and 2.0 are parallel installable
+
+
+1.99.0
+======
+
+Changes since 1.4.0
+
+  * Prevent warnings from MxImage by not closing the pixbuf loader before
+    calling g_object_unref.
+  * Honor the disabled property in MxToggle.
+  * Prevent warnings when using MxAction with glib 2.28.
+  * Various cleanups in MxTable
+  * MxKineticScrollView: correctly clamp to the center
+  * Conditionally disable code that depends on X11
+  * create-image-cache: use dynamic memory allocation for paths
+  * notebook: add methods for switching to previous and next page
+  * menu: add the possibility for a MxMenu to be scrolled
+  * Add drag-start/drag-stop signals to MxSlider
+  * Expose mx_border_image_equal
+  * Implement the MxFocusable interface on MxToggle
+  * Remove mx-gtk library
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2686 - Crash in xsettings_notify_func() due to NULL setting
+  #2614 - Document the need for ClutterGesture for MxScrollView gestures
+  #2464 - MxBoxLayout could have convenience functions for vertical and 
+          horizontal layouts
+
+1.4.0
+=====
+
+Changes since 1.3.2
+
+  * Add new testing applications for widgets and containers
+  * Prevent the cursor from being stuck as an I beam after selecting text in
+    MxEntry
+  * Add "state" and "clamp-to-center" properties for MxKineticScrollView
+  * Add tooltips for MxEntry icons
+  * Allow highlight icons for MxEntry icons
+  * Fix a painting issue with MxScrollBar and clipped redraws
+  * Add "show-tooltip" property to MxLabel to show a tooltip when the text does
+    not fit in the current allocated size.
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2685 - stylable/listview: fix some memory leaks
+  #2682 - No tooltip for icons in MxEntry
+
+1.3.2
+=====
+
+Changes since 1.3.1
+
+  * Implement the get_paint_volume virtual function on MxWidget and
+    MxTextureFrame to enable clipped redraws and automatic culling.
+  * Allow building from git without gtk-doc
+  * MxEntry: Implement Unicode input mode
+  * Implement the GAction interface on MxAction
+  * MxApplication: Add a function to call a remote action with a parameter
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2680 - kinetic-scroll-view: Respect MxAdjustment::clamp-values
+  #2683 - MxStack preferred width and height use hidden children
+  #2684 - Mx doesn't work with multi-driver Cogl builds
+
+
+1.3.1
+=====
+
+Changes since 1.3.0
+
+  * MxKineticScrollView: lower the minimum value of deceleration to 1.01
+  * MxKineticScrollView: add "clamp-duration", "clamp-mode" and
+    "acceleration-factor" properties
+  * Optimised the painting of MxImage
+  * MxStack: add a "crop" child property
+  * Implement the MxFocusable interface on MxMenu
+  * MxComboBox: Open the menu when return key is pressed
+  * MxMenu: close the menu when escaped is pressed, or focus moved elsewhere
+  * Use xz compressed distribution tarballs by default
+  * MxSlider: prevent the handle position from being changed while the user is
+    dragging it
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2674 - Build fixes for Windows
+  #2675 - Many introspection annotations are missing
+  #2678 - Bump dependency on clutter 1.4
+
+
+1.3.0
+=====
+
+Changes since 1.2.0
+
+  * Various performance optimisations and bug fixes
+  * Add a remove_all() method to MxComboBox
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2666 - image: Allow a transition duration of 0ms
+  #2663 - Fix compiler warnings
+  #2662 - MxActorManger: unparent container before removing children
+  #2646 - Fix walking of children in MxBoxLayout
+  #2645 - Warnings when destroying an MxEntry while mouse pointer is over it.
+  #2671 - MxImage memory corruption when blitting textures
+
+
+1.2.0
+=====
+
+Changes since 1.1.12
+
+  * Update sizes in Gtk light switch
+  * Add scroll-policy support to MxKineticScrollView
+  * Don't swallow all button events in MxWidget
+  * Fix MxKineticScrollView when :use-captured is FALSE
+  * Change the default step-increment in MxAdjustment to 1.0
+  * Fix many compiler warnings
+  * Allow overriding of the system icon theme
+  * Add tooltip delay property to MxWidget
+  * Fix MxOffscreen incorrect aspect ratio
+
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2653 - test-mx on OSX seems to be broken
+  #2578 - add "scroll-policy" property to MxKineticScrollView
+  #2658 - The background looks wrong when MxDialog has a stage as its parent
+  #2649 - The delay time before showing a tooltip should be settable
+  #2643 - [MxKineticScrollView] Disable per-actor motion events when panning
+  #2642 - MxGrid returns the wrong min_width_p
+
+1.1.12
+======
+
+Changes since 1.1.11
+
+  * Apply the paint opacity to both textures correctly in MxImage
+  * Clarify the documentation for mx_bin_allocate_child
+  * Indicate in the documentation which symbols are new in 1.2
+  * Draw rectangles around actors when using the layout debug flag
+  * MxBin: don't request space for the child when it is not visible
+  * MxBin: hide the label when it is empty or no text has been set
+  * Don't animate MxToggle if it is not mapped
+  * Remove the hover state from MxToggle if the pointer left during a drag
+  * Add a function to MxImage to animate changing the scale mode
+
+Fixed Bugs (from bugzilla.clutter-project.org):
+
+  #2470 - slider: propagate the "disabled" property to internal children
+  #2609 - don't require libmx-gtk when building libmx documentation
+  #2613 - Document mx_set_locale
+  #2618 - Add MxAdjustment::interpolation-completed signal
+  #2635 - Prevent glade support being enabled when --without-glade is used
+  #2636 - Allocate expander child using align/fill properties.
+  #2641 - Remove 'active' state and cancel long press on leave event
+  #2642 - MxGrid: compute min_width and min_height correctly
+
+
+1.1.11
+======
+
+Changes since 1.1.10
+
+ * Allow arbitrary rotation angles in MxImage
+ * Handle loss of focus in MxFocusManager
+ * Handle URIs in MxTextureCache
+ * Allow insertion into MxTextureCache
+ * Allow insertion of metadata in MxTextureCache
+ * Many fixes and refinement of MxImage
+ * Fix calling clutter_actor_queue_relayout during dispose of MxOffscreen
+ * Add MxActorManager, to help spread the load of actor operations
+ * Fix MxTable get_preferred_width/height when used without for_width/height
+
+1.1.10
+======
+
+Changes since 1.1.9
+
+ * Fix some concurrency issues with asynchronous loading in MxImage
+ * Fix the fullscreen GObject property setter in MxWindow
+ * Make the toolbar property of MxWindow writable
+ * Add a title property to MxWindow
+ * Fix handling of padding in MxBoxLayout get_preferred_width/height
+ * Add a use-markup property to MxLabel
+ * Ensure the old border-image is correctly allocated in MxWidget
+ * Make sure the corners of MxFadeEffect render consistently
+ * Fix focus issues when showing a still-hiding MxDialog
+
+1.1.9
+=====
+
+Changes since 1.1.8
+
+ * Fix MxStack not chaining up correctly, breaking background drawing
+ * Add a new spinner graphic that stands out better on white
+ * Add a 'looped' signal to the spinner
+ * Add a 'buffer-value' property to MxSlider
+ * Fix supported rotation values check in MxImage
+ * Ensure that the 'disabled' pseudo-state is correct in MxWidget
+ * Fix various styling issues in MxSlider
+ * Fix incorrect CFLAGS when building documentation
+ * Replace the per-object style cache with a per-style rule cache
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2577 - MxStack doesn't allow its parent to paint its background
+  #2456 - MxBoxLayout: notify when adjustments change
+  #2579 - Add last-frame / looped / something signal to MxSpinner
+  #2568 - build: Update introspection.m4
+  #2281 - mx_bin_set_child() does not work with MxScrollView
+  #2590 - Extra "-I" in Makefile.am causes fail to build from source
+  #2510 - Update mx types and sections files for gtk-doc
+
+1.1.8
+=====
+
+Changes since 1.1.7:
+
+ * Documentation updates and fixes
+ * New "image-rotation" property for MxImage
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2263 - Improve tooltip behavior and presentation
+  #2281 - mx_bin_set_child() doesn't work with MxScrollView
+  #2456 - MxBoxLayout: notify when the adjustments properties change
+  #2568 - build: Update introspection.m4
+  #2510 - Update mx types and sections files for gtk-doc
+
+1.1.7
+=====
+
+Changes since 1.1.6:
+
+ * New class, MxFadeEffect. This is a sub-class of ClutterOffscreenEffect
+   that lets you fade out the borders of actors
+ * Label supports a 'fade-out' property that instructs it to fade out at the
+   end of the line instead of ellipsizing
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2560 - MxTable: clutter_container_add does not update row/column count
+
+1.1.6
+=====
+
+Changes since 1.1.5:
+
+ * Label supports a linewrap property that proxies through to the internal
+   ClutterText
+ * MxStack now supports a fit property that attempts to fix the actor into the
+   available space whilst respecting the actor's width-for-height or
+   height-for-width constraints
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2523 - fix DSO linking issues
+  #2552 - fix behaviour of --disable-gtk-widgets
+
+1.1.5
+=====
+
+Changes since 1.1.4:
+
+ * CSS debugging mode
+ * Interpolation in MxAdjustment now works when the value was exactly at the
+   end
+ * JSON files without valid properties won't cause a segfault
+ * Focus manager now supports a hint when pushing focus
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #1195 - fixes to freeze/thaw behaviour
+  #2533 - setting custom icon causes crash on 64bit
+  #2532 - only requre GTK+ if not disabled
+  #2537 - make mx-create-image-cache only depend on gdk-pixbuf
+
+1.1.4
+=====
+
+Changes since 1.1.3:
+
+ * Bump dependency on GLib to 2.26.0 for GBinding
+ * Small optimisations to CSS matching
+ * Support multiple CSS pseudo-classes
+ * Add CSS selector prioritisation depending on position in stylesheet
+ * Add a 'clear' function to MxImage to blank the current image
+ * Always store the last-focused actor when moving focus
+ * Add asynchronous image-loading to MxImage
+
+1.1.3
+=====
+
+Changes since 1.1.2:
+
+ * Make text and label properties translatable from JSON files
+ * Add a 'drag-threshold' setting to MxSettings
+ * Don't specify #version in 1.10 GLSL shaders
+ * Add an 'overshoot' property to MxKineticScrollView
+ * Compile the blur shader in MxDialog on creation
+ * Fix toggling the toolbar after mapping in MxWindow
+ * Add functions for setting/getting window size in MxWindow
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2488 - button events inside kinetic scroll view
+  #2507 - add overshoot oeffect to MxKineticScrollView
+  #2208 - Fix the incorrect removal of qdata when disabling MxDroppable
+  #2412 - Don't try to interpolate if we get an invalid target value
+  #2498 - Don't assume that MxScrollables will have both adjustments
+  #2483 - MxIcon warning when "-mx-content-image:none;" is used
+  #2463 - MxWindow with disabled toolbar still shows part of the toolbar ...
+  #2496 - clutter_stage_set_fullscreen() only works after stage is realized
+  #2434 - MxWindow should have a mx_window_set_size method
+
+1.1.2
+=====
+
+Changes since 1.1.1:
+
+ * Focus hints now support direction the request came from
+ * MxSlider: allocate trough on pixel boundaries
+ * MxIcon: now supports a style property for handling the icon suffix
+ * MxEntry: fix shadow drawing when scrolling
+
+1.1.1
+=====
+
+Changes since 1.1.0:
+
+ * Add MxDialog, a modal, single-widget container
+ * MxAdjustment: fix elasticity and add a 'clamp-value' property
+ * MxSettings: add a 'small-screen' property
+ * MxBoxLayout: fix animations and child property variable definitions
+ * MxButton: add icon-name and icon-size properties, add an MxAction property
+ * MxComboBox: fix the position of the popup when transformed
+ * Add MxKinecticScrollView, a kinetic scrolling container widget
+ * MxFocusable: add a focus debug category and other various fixes
+ * Remove transitional mx/mx-gtk.h header
+ * Split out various X11 specific code so that it is possible to compile Mx
+   without X11
+ * MxSlider: add key focus support
+ * Add MxSpinner, a processing indicator widget
+ * Add MxStack, a container that allows stacking of children over each other
+ * MxStyle: performance improvements and other fixes
+ * MxTable: fix crasher when focusing an empty cell, implement raise/lower/sort
+   container functions.
+ * MxToggle: fix issues when transformed
+ * MxTooltip: fix position when transformed
+ * MxWindow: add orientation property, show/hide functions and various other
+   fixes
+ * Various other small changes and fixes
+
+Fixed bugs (from bugzilla.clutter-project.org):
+
+  #2310 - Use the new CLUTTER_KEY symbols in Mx
+  #2179 - Tooltips should only show after a delay
+  #2312 - Sync style instance with internal children
+  #2430 - Annotate mx_icon_theme_set_search_paths' paths argument properly
+  #2439 - Add exported pacakges to GIRs
+  #2429 - Differences between MxEntry and MxLabel are not documented
+  #2357 - Mx should set the hover state also when the pointer is over a child
+  #2387 - spinner should update at the redraw priority
+  #2451 - [MxStack] position with pixel alignment when aligning in the middle
+
+
+1.1.0
+=====
+
+Changes since 1.0.0:
+
+ * Updated documentation
+ * Fix compilation with recent versions of GTK+
+ * Require GTK+ 2.20
+ * MxWidget: Move padding into the correct struct
+ * Reduce the libtool version age to indicate ABI change
+ * Fix GtkLightSwitch size and remove labels
+ * Focusable: don't accept focus on hidden actors
+ * Allow spacing to be set from CSS in MxTable and MxBoxLayout
+ * MxOffScreen: Add "redirect-enabled" property
+ * MxOffScreen: Add accumulation buffer capability
+ * MxOffScreen: Provide an accessor to the fbo
+ * BoxLayout: add "scroll-to-focused" property
+ * Add MxSettings and support for reading xsettings
+ * Use CoglSubtexture rather than internal subtexture implementation
+ * ScrollView: add shadows to the inside of a scrollview when scrolling
+ * Viewport: respect fill, alignment and padding properties
+ * Window: respect ClutterStage:user-resizable property
+ * Improvements to MxIconTheme
+ * Support pixel (px) and point (pt) font size values in CSS
+ * MxModalFrame: new widget to implement modal dialogs
+
+Updated Translations:
+
+  * Turkish (Ahmet Özgür Erdemli)
+  * Asturian (astur)
+
+Many thanks to:
+  Chris Lord
+  Neil Roberts
+  Thomas Wood
+  iain
+
+
+1.0.0
+=====
+
+Changes since 0.99.0:
+
+ * Updated documentation
+ * Fix build issues with GTK+ 2.20
+ * Updated visual design
+ * Add "disabled" state support to widgets
+ * Implement up/down/left/right focus support
+ * Improved key focus management support
+ * Improved key focus support in table and box-layout widgets
+ * Prevent unwanted artifacts when resizing a texture frame beyond its
+   smallest dimensions
+ * Fix placement of combobox popup menu when near the bottom edge of the window
+ * Fix issues building with Clutter 1.3
+ * Remove some unused and undefined API
+ * Remove API marked as deprecated
+ * Optimise the border-image property so that it does not load texture
+   unnecessarily.
+ * Optimise align/fill allocations so that they do not request size information
+   unnecessarily.
+
+
+Fixed bugs (from bugs.meego.com):
+  #909  mx_table_find_actor_at did not use row/col span to work out where an
+        actor was
+  #896  MxTable takes hidden rows/columns into consideration when calculating
+        allocations
+  #848  Build fails as code tries to set CoglColor members (red, green, blue)
+        which don't exist
+  #702  MxWidget paints outside of its allocation if border-image geometry is
+        bigger than the widget size
+  #597  Checkbox style for MX toggle button
+  #345  [MxScrollView]The cross area of h bar and v bar is colored once the
+        scroll view is launched
+  #343  [MxScrollView] the function
+        mx_scroll_view_set_enable_mouse_scrolling() does not take effect
+  #1779 Memory leak in MxWidget when border-image hasn't changed
+  #1570 Setting a label on a mapped MxButton that has had no label previously
+        set results in an incorrect style
+  #1514 Incorrect padding on email update tile
+  #1201 [MxExpander] foreach() callback for expander only works when the
+        expander is expanded
+  #1200 [MxExpander] the constract_complete signal definition can be removed
+  #1198 MxScrollView connects to non-existent property names (due to a rename)
+  #1140 Unnecessary measurement causes performance issues
+  #1139 MxLabel doesn't ask for enough width/height when it has padding
+  #1138 Table: Focus can get trapped when moving right or down from a spanned
+        actor
+  #1053 MxScrollView will show scroll-bars when they aren't necessary
+  #1052 Possible NULL pointer access in MxScrollView
+
+New and updated translations:
+
+  Walloon
+  Mexican Spanish
+  Slovak
+  Danish
+  English (United Kingdom) (en_GB)
+  Korean (ko)
+  Italian (it)
+  Finnish (fi)
+  Polish (pl)
+  Brazilian Portuguese (pt_BR)
+  French (fr)
+  Chinese (China) (zh_CN)
+  Russian (ru)
+  Japanese (ja)
+
+Many thanks to:
+
+  Chris Lord
+  Damien Lespiau
+  Evan Nemerson
+  iain
+  José Dapena Paz
+  Thomas Wood
+
+
+0.99.0
+======
+
+Changes since 0.9.0:
+
+ * Deprecated API has been disabled
+ * Rename MxSlider "progress" property to "value"
+ * IconTheme: look in the system and user data directories
+ * Set arbitrary preferred widths for ProgressBar, Slider and Entry, so that
+   they are useful and usable when allocated their preferred size.
+ * Simplify the offscreen shaders API in MxOffscreen
+ * Convert the MxNotebook API to be actor based, rather than index based
+ * Ensure that all enumeration types are namespaced properly
+ * MxWindow icon can now be set from a cogl texture
+ * Add function to retrieve the associated MxWindow from an ClutterStage
+ * Fix type inconsistencies in MxTableChild properties (x/y-align)
+ * Various updates to documentation
+
+Updated translations:
+
+  German (de) translation (Andreas Machoy)
+
+Many thanks to:
+
+  Thomas Wood
+  Chris Lord
+
+
+0.9.0
+====
+
+Changes since 0.8.0:
+
+ * Further API Review. Some small changes have been made and properties
+   have been synchronised with their accessors.
+   Please see the ChangeLog or commit log for full details.
+ * MxMenu and MxComboBox now both use MxIcon internally, allowing the
+   icon size to be themed in CSS.
+ * MxMenu now has an -mx-spacing style property to allow custom spacing,
+   similar to MxComboBox.
+ * MxScrollView now has a function to ensure a region is visible.
+
+ * Fixed bugs:
+   MB#10372 - API for ensuring an actor inside mx-scroll-view is visible
+   MB#9672  - HD usage bar shows incorrect color in Device panel
+
+Updated translations:
+
+  Dutch (Flemish) (nl) translation (auke)
+  Spanish (Castilian) (es) (tomasgalicia)
+
+Many thanks to:
+
+  Hylke Bons
+  Elliot Smith
+  Chris Lord
+
+0.8.0
+=====
+
+Changes since 0.7.0:
+
+ * API Review completed. Lots of API has been renamed, removed or added.
+   Please see the ChangeLog or commit log for full details.
+ * Add deform textures, allowing arbitrary deformations on textures
+   MxDeformTexture, MxDeformPageTurn, MxDeformCloth and MxDeformBowtie
+ * Add MxOffscreen actor, to draw textures offscreen.
+
+ * Fixed bugs:
+   MB#10194 - Use the right values when setting :y-fill property
+   MB#9527  - table-child: Add accessors for :row and :col
+   MB#10054 - gtk-light-switch: adjust size request
+   MB#6158  - viewport: simplify the viewport allocate
+   MB#9936  - box-layout: Add mx_box_layout_add_actor(_with_position) functions
+   MB#9998  - popup: call ensure style on the children
+   MB#6313  - Add clutter-text properties to MxEntry and MxLabel
+   MB#9978  - [droppable] Don't hide the draggable before picking
+   MB#6159  - Add GObject Introspection annotations
+   MB#6308  - [box-layout] Adjust amount we need to expand for padding
+   MB#6467  - Add emacs mode-lines
+   MB#6504  - [button] Fix property enumeration names
+   MB#9917  - [expander] do not pass NULL to the foreach callback
+   MB#9680  - [label] Implement "pick" in MxLabel
+   MB#9842  - [button] print a warnings when using -mx-content-image with some
+              properties
+
+Updated translations:
+
+  Russian file. (Leila)
+  Chinese (Taiwan) (zh_TW) translation (zerng07)
+  Indonesian (id) translation (andika)
+  Swedish (sv) translation (A Olsson)
+
+
+Many thanks to:
+
+  Adrien Bustany
+  Bastian Winkler
+  Chris Lord
+  Damien Lespiau
+  Elliot Smith
+  Emmanuele Bassi
+  Hylke Bons
+  Jussi Kukkonen
+  Owen W. Taylor
+  Rob Bradford
+  Ross Burton
+  Thomas Wood
+
+
+0.7.0
+=====
+
+Changes since 0.6.0:
+
+ * Fixes in resizable windows
+ * Improvements to path-bar
+ * Support allocating children less than their preferred size
+ * Use -mx prefix for custom CSS properties
+ * Fixed size and allocation of toggle switches
+ * Add -mx-border-image-transition-duration to control background cross fade
+ * Add a debug mode to MxTable to indicate column and rows
+ * Make the scrollable interface name more consistent with other interfaces
+
+ * Fixed bugs:
+
+   MB#9570 - [widget] Bug in mx_widget_set_tooltip_text
+   MB#9529 - [table] Calculate row_spacing correctly
+   MB#9346 - Memory leak in widgets implementing MxScrollable
+   MB#9055 - Unable to set the popup location of MxComboBox
+   MB#9656 - [MxListView] Missing break statement in mx_list_view_set_property
+   MB#9641 - [scroll-view] Fix setting scrollbar size from CSS
+
+Many thanks to:
+
+  Bastian Winkler
+  Thomas Wood
+  Chris Lord
+  Rob Bradford
+  Evan Nemerson
+
+0.6.0
+=====
+
+Changes since 0.5.0:
+
+ * New MxWindow widget, now used by default in MxApplication
+ * New MxPathBar widget, implementing a bread-crumb UI
+ * New MxIconTheme class, to look up icons in icon themes
+ * Icon themes used in MxIcon and MxButton
+ * MxComboBox now supports icons in items
+ * New MxDeformTexture abstract class for custom deformed textures
+ * New MxDeformCloth, MxDeformBowtie, MxDeformPageTurn widgets, implementing
+   various deformation effects.
+ * Fixes to MxFocusable and MxFocusManager
+ * Focusable support added to MxComboBox
+ * Add -mx-content-image style property to specify an image for the appearance
+   of a button, including sizing.
+ * Add a text-layout-position property to MxEntry
+ * Plenty of other bug fixes
+
+ * Fixed bugs:
+    MB#9381 - [box-layout] Queue a relayout when removing a child
+    MB#9382 - [button-group] If the active button from a group is removed
+              activate another
+    MB#9288 - [texture-frame] Use the NEAREST filter on the CoglMaterial
+    MB#9146 - [entry] Emit notify signal when text of an entry changes.
+    MB#9287 - [stylable] Use PangoFontDescription to set the style on labels
+
+
+Many thanks to:
+
+  Bastian Winkler
+  Chris Lord
+  Evan Nemerson
+  Rob Bradford
+  Thomas Wood
+
+0.5.0
+=====
+
+Changes since 0.4.0:
+
+ * Single instance, startup notification and action support added to
+   MxApplication.
+ * Expose mx_allocate_align_fill and mx_stylable_apply_clutter_text_attributes
+   utility functions.
+ * Add gesture support for changing pages in MxNotebook.
+ * Fixes to various aspects of MxNotebook.
+ * Use interpolations in stepper animations.
+ * Add "popup" property to MxWidget.
+ * Add MxFocusable and MxFocusManager to help with focus navigation.
+ * Remove redundant row/column API from scroll view.
+ * Add preferred width and height functions to MxSlider.
+ * Set CSS property priorities based on load order.
+
+ * Fixed bugs:
+    MB#9054 - [button-group] fix incorrect parameter check in
+              mx_button_group_foreach
+    MB#9046 - [notebook] make sure children are hidden until needed when added
+    MB#9028 - Position MxNotebook children relative to the parent
+    MB#3785 - [grid] Add raise, lower and sort depth implementations
+    MB#9147 - Add password-char property to MxEntry
+    MB#9148 - [table] Skip hidden children when calculating row and column sizes
+
+
+Many thanks to:
+
+  Chris Lord
+  Evan Nemerson
+  Gustavo Noronha Silva
+  Rob Bradford
+  Thomas Wood
+
+
+0.4.0
+=====
+
+Changes since 0.3.0:
+
+ * New MxSlider widget (Damien Lespiau)
+ * New MxApplication class to manage windows and application configuration
+ * Experimental gesture support in MxScrollView
+ * Performance improvements to styling
+
+ * Fixed bugs:
+    MB#8892 - [css] Apply styling from parent classes to subclasses
+    MB#8710 - [button] only emit notify::checked when the property has changed
+    MB#8923 - [box-layout] Implement raise/lower/sort_depth_order
+
+0.3.0
+=====
+
+Changes since 0.2.0:
+
+ * New toolbar widget
+ * Convert MxBin to abstract class
+ * Add MxFrame as a drop-in replacement for plain instances of MxBin
+ * Use the i-beam insertion mouse cursor in MxEntry
+ * Clean up MxGrid API to be more consistent with other widgets
+ * Add support for font-weight property to buttons and labels
+ * Add animation layout support to MxBoxLayout
+ * Add special styling for ComboBoxes inside a toolbar
+ * Implement font styling in ComboBox
+ * Fix expander label visibility
+ * Add missing public headers and single include guards (Bastian Winkler)
+ * Clean up various references to removed functions (Bastian Winkler)
+ * Documentation improvements (Elliot Smith)
+
+0.2.0
+=====
+
+Changes since 0.1.0:
+
+ * Fix animation during drag and drop interaction on MxToggle
+ * Fix scrollbar stepper animation bugs (MB#7803)
+ * Fix insensitive colours in MxGtkLightSwitch (MB#7199)
+ * Integrate many of the tests into a single application
+ * Improved error reporting when loading of images or stylesheets fails
+ * Add MxFloatingWidget, a common base class for "always-on-top" actors, used
+   in tooltips and popup menus.
+ * Add more classes to the documentation generation
+ * Add a "long-press" signal to MxButton, to allow applications to handle
+   long-press (or "tap and hold") actions.
+ * Remove obsolete MxGtkExpander
+
+0.1.2
+=====
+
+Changes since 0.1.1:
+
+ * Prevent CSS debug messages when not requested
+
+0.1.1
+=====
+
+Changes since 0.1.0:
+
+ * Fix issues with hover states introduced to MxEntry by MxWidget
+ * Automatically generate the ChangeLog file for tarball releases
+ * Add ancestor matching to CSS
+ * Improve CSS match scoring in line with w3c specification
+
+0.1.0
+=====
+
+Initial release

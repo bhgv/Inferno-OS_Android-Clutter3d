@@ -1,0 +1,87 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2009 Intel Corp
+# This file is distributed under the same license as the PACKAGE package.
+# Andika Triwidada <andika@gmail.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: mx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-17 09:40+0000\n"
+"PO-Revision-Date: 2009-08-31 04:19+0700\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"Language-Team: Indonesian <id@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../mx/mx-gtk-light-switch.c:96
+msgid "Unavailable"
+msgstr "Tak tersedia"
+
+#: ../mx/mx-utils.c:94
+msgid "Less than a minute ago"
+msgstr "Kurang dari semenit yang lalu"
+
+#: ../mx/mx-utils.c:98
+msgid "A few minutes ago"
+msgstr "Beberapa menit yang lalu"
+
+#: ../mx/mx-utils.c:102
+msgid "A couple of hours ago"
+msgstr "Beberapa jam yang lalu"
+
+#: ../mx/mx-utils.c:109
+msgid "Earlier today"
+msgstr "Hari ini"
+
+#: ../mx/mx-utils.c:112
+msgid "Yesterday"
+msgstr "Kemarin"
+
+#: ../mx/mx-utils.c:120
+#, c-format
+msgid "On %A"
+msgstr "Pada %A"
+
+#: ../mx/mx-utils.c:126
+msgid "Unknown"
+msgstr "Tak diketahui"
+
+#: ../mx/mx-utils.c:133
+msgid "Last week"
+msgstr "Minggu lalu"
+
+#: ../mx/mx-utils.c:136
+msgid "A couple of weeks ago"
+msgstr "Beberapa minggu yang lalu"
+
+#: ../mx/mx-utils.c:142
+msgid "This month"
+msgstr "Bulan ini"
+
+#. Now Jan., last used in Dec.
+#: ../mx/mx-utils.c:146
+msgid "Last month"
+msgstr "Bulan lalu"
+
+#: ../mx/mx-utils.c:149
+msgid "This year"
+msgstr "Tahun ini"
+
+#: ../mx/mx-utils.c:152
+msgid "Last year"
+msgstr "Tahun lalu"
+
+#: ../mx/mx-utils.c:154
+msgid "Ages ago"
+msgstr "Telah lama berlalu"
+
+#: ../mx/mx-application.c:311
+msgid "Raise application"
+msgstr "Naikkan aplikasi"
+
+#~ msgid "On"
+#~ msgstr "Nyala"
+
+#~ msgid "Off"
+#~ msgstr "Mati"

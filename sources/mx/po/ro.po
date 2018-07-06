@@ -1,0 +1,96 @@
+# Romanian translations for mx package.
+# Copyright (C) 2009 The mx copyright holder
+# This file is distributed under the same license as the mx package.
+# Cosmin Bordeianu <elloxar@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mx\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-02-26 12:45+0000\n"
+"PO-Revision-Date: 2009-09-15 15:05+0200\n"
+"Last-Translator: Cosmin Bordeianu <elloxar@gmail.com>\n"
+"Language-Team: Moblin Romania <live@moblin.ro>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Romanian\n"
+"X-Poedit-Country: ROMANIA\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: mx/mx-gtk-light-switch.c:232
+msgid "Unavailable"
+msgstr "Indisponibil"
+
+#. TRANSLATORS: If this string takes more than four or five characters in
+#. * your language, please use the MEDIUM VERTICAL BAR unicode character
+#. * instead
+#: mx/mx-gtk-light-switch.c:252 mx/mx-gtk-light-switch.c:326
+msgid "On"
+msgstr "On"
+
+#. Draw the second label; "Off"
+#. TRANSLATORS: If this string takes more than four or five characters in
+#. * your language, please use the WHITE CIRCLE U+25CB unicode character
+#. * instead
+#: mx/mx-gtk-light-switch.c:271 mx/mx-gtk-light-switch.c:324
+msgid "Off"
+msgstr "Off"
+
+#: mx/mx-utils.c:93
+msgid "Less than a minute ago"
+msgstr "Mai puțin de un minut în urmă"
+
+#: mx/mx-utils.c:97
+msgid "A few minutes ago"
+msgstr "Acum câteva minute"
+
+#: mx/mx-utils.c:101
+msgid "A couple of hours ago"
+msgstr "Acum câteva ore"
+
+#: mx/mx-utils.c:108
+msgid "Earlier today"
+msgstr "Mai devreme"
+
+#: mx/mx-utils.c:111
+msgid "Yesterday"
+msgstr "Ieri"
+
+#: mx/mx-utils.c:119
+#, c-format
+msgid "On %A"
+msgstr "Pe %A"
+
+#: mx/mx-utils.c:125
+msgid "Unknown"
+msgstr "Necunoscut"
+
+#: mx/mx-utils.c:132
+msgid "Last week"
+msgstr "Săptămâna trecută"
+
+#: mx/mx-utils.c:135
+msgid "A couple of weeks ago"
+msgstr "Acum câteva săptămâni"
+
+#: mx/mx-utils.c:141
+msgid "This month"
+msgstr "Luna aceasta"
+
+#. Now Jan., last used in Dec.
+#: mx/mx-utils.c:145
+msgid "Last month"
+msgstr "Luna trecută"
+
+#: mx/mx-utils.c:148
+msgid "This year"
+msgstr "Anul acesta"
+
+#: mx/mx-utils.c:151
+msgid "Last year"
+msgstr "Anul trecut"
+
+#: mx/mx-utils.c:153
+msgid "Ages ago"
+msgstr "Foarte demult"

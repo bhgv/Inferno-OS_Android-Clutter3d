@@ -1,0 +1,87 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-04-05 09:39+0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Loïc Dufresne de Virel <loic.dufresne.de.virel@intel.com>\n"
+"Language-Team: lpdufres <loic.dufresne.de.virel@intel.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: French\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../mx-gtk/mx-gtk-light-switch.c:96
+msgid "Unavailable"
+msgstr "Indisponible"
+
+#: ../mx/mx-utils.c:94
+msgid "Less than a minute ago"
+msgstr "Il y a moins d'une minute"
+
+#: ../mx/mx-utils.c:98
+msgid "A few minutes ago"
+msgstr "Il y a quelques minutes"
+
+#: ../mx/mx-utils.c:102
+msgid "A couple of hours ago"
+msgstr "Il y a quelques heures"
+
+#: ../mx/mx-utils.c:109
+msgid "Earlier today"
+msgstr "Un peu plus tôt aujourd'hui"
+
+#: ../mx/mx-utils.c:112
+msgid "Yesterday"
+msgstr "Hier"
+
+# "On Tuesday" would be "Mardi" only in French.
+#: ../mx/mx-utils.c:120
+#, c-format
+msgid "On %A"
+msgstr "%A"
+
+#: ../mx/mx-utils.c:126
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: ../mx/mx-utils.c:133
+msgid "Last week"
+msgstr "La semaine dernière"
+
+#: ../mx/mx-utils.c:136
+msgid "A couple of weeks ago"
+msgstr "Il y a quelques semaines"
+
+#: ../mx/mx-utils.c:142
+msgid "This month"
+msgstr "Ce mois"
+
+#. Now Jan., last used in Dec.
+#: ../mx/mx-utils.c:146
+msgid "Last month"
+msgstr "Le mois dernier"
+
+#: ../mx/mx-utils.c:149
+msgid "This year"
+msgstr "Cette année"
+
+#: ../mx/mx-utils.c:152
+msgid "Last year"
+msgstr "L'année dernière"
+
+#: ../mx/mx-utils.c:154
+msgid "Ages ago"
+msgstr "Ça fait un bail"
+
+#: ../mx/mx-application.c:311
+msgid "Raise application"
+msgstr "Relever l'application"
+
+#~ msgid "On"
+#~ msgstr "Activé"
+
+#~ msgid "Off"
+#~ msgstr "Désactivé"

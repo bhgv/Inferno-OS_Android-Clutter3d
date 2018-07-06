@@ -1,0 +1,58 @@
+Coding Style
+============
+
+The coding style of Mx mostly follows the GNU coding standards. See
+http://www.gnu.org/prep/standards/ for more information.
+
+One important exception is that formal parameters to functions are always
+separated by new lines and the type and name columns are aligned.
+
+ For example:
+
+void
+foo_bar_set_int (FooBar *type,
+                 gint    int)
+{
+  ...
+}
+
+Users of the Vim editor will want to set the following options to help produce
+properly indented code:
+
+:set expandtab shiftwidth=2 softtabstop=2
+:set cindent cinoptions=>4,n-2,{2,^-2,\:0,=2,g0,h2,t0,+2,(0,u0,w1,m1
+
+Alternatively, set the following lines in your .vimrc file to enable reading
+the local vim settings from the sources directory:
+
+set exrc          " enable per-directory .vimrc files
+set secure        " disable unsafe commands in local .vimrc files
+
+
+Committing
+==========
+
+Mx is currently managed in a git repository. Git has a special format for
+commit messages; the first line of the message is a brief (less than 72
+characters) explanation of the commit. Where appropriate, the short commit
+message should be preceded by a "tag", consisting of a word followed by a
+semicolon. This should either be the lower case class name affected by the
+commit, or the application binary name. If your patch affects multiple classes
+or applications, consider whether the patch can be broken into smaller commits.
+
+The short log message is followed by a blank line and then a paragraph that
+details the reasons for the commit and explains the changes. Sometimes it is
+not necessary to include the long description, but this should be the exception
+rather than the rule.
+
+For example:
+
+-------------------------------------------------------------------------------
+tag: a brief short description
+
+A longer description outlining the changes and why they where introduced.
+This should be concise, but not too brief.
+-------------------------------------------------------------------------------
+
+
+

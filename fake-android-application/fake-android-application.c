@@ -120,11 +120,15 @@ clutter_android_application_run (ClutterAndroidApplication *application)
 {
   gboolean initialized;
 
+LOGI("%s: %d", __func__, __LINE__);
   g_return_if_fail (CLUTTER_IS_ANDROID_APPLICATION (application));
 
+LOGI("%s: %d", __func__, __LINE__);
   g_signal_emit (application, signals[READY], 0, &initialized);
 
+LOGI("%s: %d", __func__, __LINE__);
   clutter_main ();
+LOGI("%s: %d", __func__, __LINE__);
 }
 
 

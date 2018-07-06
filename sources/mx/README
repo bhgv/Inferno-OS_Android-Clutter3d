@@ -1,0 +1,29 @@
+Mx Toolkit
+==========
+
+Mx is a widget toolkit using Clutter that provides a set of standard interface
+elements, including buttons, progress bars, scroll bars and others. It also
+implements some standard  managers. One other interesting feature is the
+possibility setting style properties from a CSS format file.
+
+Documentation
+=============
+
+API reference is provided by gtk-doc annotations. If Mx is configured with the
+--enable-gtk-doc option, API reference is built in the docs/reference/libmx
+directory.
+
+Bugs
+====
+
+Issues and feature requests should be logged in the issue tracker at:
+
+  https://github.com/clutter-project/mx/issues
+
+Mailing List
+============
+
+There is currently no dedicated mailing list for Mx, but general questions
+regarding Clutter can be directed to the Clutter mailing list. More information
+about Clutter can be found on the website: http://clutter-project.org/.
+
