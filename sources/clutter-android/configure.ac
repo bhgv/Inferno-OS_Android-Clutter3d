@@ -126,6 +126,9 @@ dnl = Dependencies =========================================================
 
 # Checks for programs.
 AM_PROG_CC_C_O
+# Automake selects CXXLINK for the optional Android C++ sources even on Linux.
+# Initialize the C++ libtool tag unconditionally before LT_INIT.
+AC_PROG_CXX
 
 # require libtool >= 2.2
 LT_PREREQ([2.2.6])
@@ -1191,7 +1194,6 @@ AC_CONFIG_FILES([
 	build/win32/vs10/Makefile
 
 	clutter/Makefile
-	clutter/config.h.win32
         clutter/clutter-config.h
 	clutter/clutter-version.h
 	clutter/clutter-$CLUTTER_API_VERSION.pc:clutter/clutter.pc.in

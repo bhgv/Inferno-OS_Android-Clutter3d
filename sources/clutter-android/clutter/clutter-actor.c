@@ -14812,7 +14812,7 @@ clutter_actor_transform_stage_point (ClutterActor *self,
   ClutterVertex v[4];
   float ST[3][3];
   float RQ[3][3];
-  int du, dv, xi, yi;
+  float du, dv;
   float px, py;
   float xf, yf, wf, det;
   ClutterActorPrivate *priv;
@@ -14838,11 +14838,11 @@ clutter_actor_transform_stage_point (ClutterActor *self,
 
   clutter_actor_get_abs_allocation_vertices (self, v);
 
-  /* Keeping these as ints simplifies the multiplication (no significant
-   * loss of precision here).
+  /* Preserve fractional actor allocation dimensions. The projection and
+   * event coordinates are floating point, including transformed touch input.
    */
-  du = (int) (priv->allocation.x2 - priv->allocation.x1);
-  dv = (int) (priv->allocation.y2 - priv->allocation.y1);
+  du = priv->allocation.x2 - priv->allocation.x1;
+  dv = priv->allocation.y2 - priv->allocation.y1;
 
   if (!du || !dv)
     return FALSE;
@@ -14939,12 +14939,10 @@ clutter_actor_transform_stage_point (ClutterActor *self,
    * Now transform our point with the ST matrix; the notional w
    * coordinate is 1, hence the last part is simply added.
    */
-  xi = (int) x;
-  yi = (int) y;
-
-  xf = xi * ST[0][0] + yi * ST[1][0] + ST[2][0];
-  yf = xi * ST[0][1] + yi * ST[1][1] + ST[2][1];
-  wf = xi * ST[0][2] + yi * ST[1][2] + ST[2][2];
+  /* Do not truncate stage input to integer pixels before unprojection. */
+  xf = x * ST[0][0] + y * ST[1][0] + ST[2][0];
+  yf = x * ST[0][1] + y * ST[1][1] + ST[2][1];
+  wf = x * ST[0][2] + y * ST[1][2] + ST[2][2];
 
   if (x_out)
     *x_out = xf / wf;
