@@ -104,3 +104,39 @@ was available for end-to-end verification.
 host asset adapter and emulated shared mount: 14 packaging/extraction/retry and
 asset-disable predicates. Existing files are preserved. Both provisioning modes
 are checked in actual CMake configuration; Android device testing remains open.
+
+## Verified ARM32 test build follow-up
+
+The 2026-10-31 test APK was actually compiled and linked with NDK r16b/API 17.
+Core libraries used classic mk and EXTWINFLAGS=-DEXT_WIN; the framebuffer APK
+used a separate clean core with that flag empty. Never mix those archives.
+Both native entries allocate their logical buffer after startup -g parsing.
+
+Clutter carries a different FreeType implementation from Inferno. CMake now
+runs tools/namespace-inferno-freetype.py to copy core archives and consistently
+rename the private FreeType definitions and references. It keeps the original
+core archives unchanged. The normal make/ndk-build entry prepares equivalent
+copies with inferno-libs. Set INFERNO_NM and INFERNO_OBJCOPY to suitable tools.
+The actual host link test tests/private-freetype.py keeps both implementations
+reachable and checks preservation of input archives. The unused mx-2.0 link
+requirement was removed; libintl was added for existing translation calls.
+Legacy fat LTO archives are linked through their native code when using GCC,
+without loading a different GCC version's LTO plugin.
+
+After extracting install.tgz with tar --no-same-owner, update the changed native
+backend against that ARM32 stack with:
+
+```
+python3 tools/rebuild-android-backends.py --cc /path/to/standalone/bin/arm-linux-androideabi-gcc
+```
+
+It recompiles the actual Clutter Android source and the original GLib gutils
+source with Android feature detection (issetugid is not supplied by this libc).
+No GLib function or privilege-check implementation is replaced. The helper
+rejects a non-ARM32 compiler; this legacy dependency archive is not an ARM64 port.
+The GLES CMake build used CMAKE_NM=/usr/bin/nm in this sandbox because the old
+NDK nm plugin could not run with the sandbox's restricted /proc.
+
+The runtime packager now also includes available acme, locale, man, module and
+services trees. This makes compiled Acme files and Limbo module interfaces
+available with the normal runtime directories.

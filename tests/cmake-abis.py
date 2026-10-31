@@ -26,8 +26,9 @@ def main():
             if result.returncode:
                 raise RuntimeError(result.stdout+result.stderr)
             link = (build/'CMakeFiles/inferno_os_app.dir/link.txt').read_text()
-            if str(tree/('Android/'+arch+'/lib/emu.a')) not in link:
-                raise RuntimeError('Wrong imported archive for '+abi)
+            preparation = (build/'CMakeFiles/inferno_private_freetype.dir/build.make').read_text()
+            if str(tree/('Android/'+arch+'/lib')) not in preparation or 'inferno-private-lib/emu.a' not in link:
+                raise RuntimeError('Wrong private archive source/destination for '+abi)
             if '-Wl,--wrap=libinit' not in link:
                 raise RuntimeError('Missing final-geometry startup wrapper')
             flags = build/'CMakeFiles/inferno_os_app.dir/flags.make'

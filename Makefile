@@ -1,11 +1,20 @@
 .DEFAULT_GOAL := help
 PYTHON ?= python3
 INFERNO_BUNDLE_RUNTIME ?= 0
+INFERNO_ABI ?= armeabi-v7a
+INFERNO_OBJTYPE = $(if $(filter arm64-v8a,$(INFERNO_ABI)),arm64,$(if $(filter x86_64,$(INFERNO_ABI)),amd64,arm))
+INFERNO_NM ?= nm
+INFERNO_OBJCOPY ?= arm-linux-androideabi-objcopy
+INFERNO_PRIVATE_LIB = $(CURDIR)/build/inferno-private-lib/$(INFERNO_OBJTYPE)
 INFERNO_ROOT ?= $(CURDIR)/inferno-os
 
 .PHONY: inferno-assets
 inferno-assets:
 	$(PYTHON) tools/stage-inferno.py --source "$(INFERNO_ROOT)" --output "$(CURDIR)/app/assets/inferno" $(if $(filter 1,$(INFERNO_BUNDLE_RUNTIME)),,--disabled)
+
+.PHONY: inferno-libs
+inferno-libs:
+	$(PYTHON) tools/namespace-inferno-freetype.py --source "$(INFERNO_ROOT)/Android/$(INFERNO_OBJTYPE)/lib" --output "$(INFERNO_PRIVATE_LIB)" --nm "$(INFERNO_NM)" --objcopy "$(INFERNO_OBJCOPY)"
 
 QUIET_ = @
 QUIET = $(QUIET_$(V))
@@ -38,16 +47,16 @@ ohand-app-full:
 	cd $(PWD)/ohand && ant debug
 	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
-inferno-full: inferno-assets
+inferno-full: inferno-assets inferno-libs
 #	export NDK_MODULE_PATH=$(PWD)
 	android update project -p $(PWD)/app --target 1
-	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
+	cd $(PWD)/app && ndk-build APP_ABI=$(INFERNO_ABI) INFERNO_LIB="$(INFERNO_PRIVATE_LIB)" INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
-inferno: inferno-assets
+inferno: inferno-assets inferno-libs
 #	export NDK_MODULE_PATH=$(PWD)
-	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
+	cd $(PWD)/app && ndk-build APP_ABI=$(INFERNO_ABI) INFERNO_LIB="$(INFERNO_PRIVATE_LIB)" INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 

@@ -30,6 +30,29 @@ else()
     message(FATAL_ERROR "Unsupported Inferno ABI: ${ANDROID_ABI}")
 endif()
 set(infrlib_DIR "${INFERNO_ROOT}/Android/${INFERNO_OBJTYPE}/lib")
+# Clutter and Inferno carry distinct FreeType implementations; never mix their symbols.
+if(CLUTTER STREQUAL "clutter")
+    find_program(INFERNO_PYTHON python3)
+    if(NOT INFERNO_PYTHON)
+        message(FATAL_ERROR "Python 3 is required for private Inferno library preparation")
+    endif()
+    set(INFERNO_SOURCE_LIB_DIR "${infrlib_DIR}")
+    set(infrlib_DIR "${CMAKE_CURRENT_BINARY_DIR}/inferno-private-lib")
+    file(GLOB INFERNO_SOURCE_ARCHIVES "${INFERNO_SOURCE_LIB_DIR}/*.a")
+    set(INFERNO_PRIVATE_ARCHIVES)
+    foreach(name emu lib9 libbio libdraw libdynld libfreetype libinterp libkeyring libmath libmemdraw libmemlayer libmp libprefab libsec libstyx libtk liblodepng)
+        list(APPEND INFERNO_PRIVATE_ARCHIVES "${infrlib_DIR}/${name}.a")
+    endforeach()
+    add_custom_command(OUTPUT "${infrlib_DIR}/ready.stamp"
+        BYPRODUCTS ${INFERNO_PRIVATE_ARCHIVES}
+        COMMAND "${INFERNO_PYTHON}" "${INFERNO_OS_PROJ_DIR}/tools/namespace-inferno-freetype.py"
+            --source "${INFERNO_SOURCE_LIB_DIR}" --output "${infrlib_DIR}"
+            --nm "${CMAKE_NM}" --objcopy "${CMAKE_OBJCOPY}"
+        DEPENDS ${INFERNO_SOURCE_ARCHIVES} "${INFERNO_OS_PROJ_DIR}/tools/namespace-inferno-freetype.py"
+        VERBATIM)
+    add_custom_target(inferno_private_freetype DEPENDS "${infrlib_DIR}/ready.stamp")
+endif()
+
 link_directories("${CLUTTER_PREFIX}/lib")
 
 add_library(emu STATIC IMPORTED)
@@ -141,6 +164,12 @@ endif()
 
 
 add_library(native-audio STATIC native-audio.c)
+if(CLUTTER STREQUAL "clutter")
+    add_dependencies(inferno_os_app inferno_private_freetype)
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        set_property(TARGET inferno_os_app APPEND_STRING PROPERTY LINK_FLAGS " -fno-lto -fno-use-linker-plugin")
+    endif()
+endif()
 
 
 if(INFERNO_BUNDLE_RUNTIME)
@@ -192,7 +221,6 @@ target_link_libraries(inferno_os_app
     native-audio
 
 
-    mx-2.0 
     gdk_pixbuf-2.0 
     clutter-1.0 
     json-glib-1.0 
@@ -218,6 +246,7 @@ target_link_libraries(inferno_os_app
     glib-android-1.0 
     glib-2.0 
     iconv 
+    intl
     ffi 
 #    gettext
 

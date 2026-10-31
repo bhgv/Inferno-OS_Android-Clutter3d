@@ -15,7 +15,7 @@ INFERNO_OBJTYPE := amd64
 else
 $(error Unsupported Inferno ABI: $(TARGET_ARCH_ABI))
 endif
-INFERNO_LIB := $(INFERNO_ROOT)/Android/$(INFERNO_OBJTYPE)/lib
+INFERNO_LIB ?= $(abspath $(LOCAL_PATH)/../../build/inferno-private-lib/$(INFERNO_OBJTYPE))
 
 $(call import-add-path,$(LOCAL_PATH)/../..)
 
@@ -23,7 +23,7 @@ INFERNO_BUNDLE_RUNTIME ?= 0
 
 LOCAL_MODULE    := inferno_os_app
 LOCAL_SRC_FILES := clutter_main.c native-audio.c clutter-utils.c inferno_storage.c inferno_viewport.c
-LOCAL_LDFLAGS += -Wl,--wrap=libinit
+LOCAL_LDFLAGS += -Wl,--wrap=libinit -fno-lto -fno-use-linker-plugin
 LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES \
     -L$(LOCAL_LIB)	\
     -lgdk_pixbuf-2.0	\
