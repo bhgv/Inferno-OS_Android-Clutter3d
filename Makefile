@@ -1,10 +1,11 @@
 .DEFAULT_GOAL := help
 PYTHON ?= python3
+INFERNO_BUNDLE_RUNTIME ?= 0
 INFERNO_ROOT ?= $(CURDIR)/inferno-os
 
 .PHONY: inferno-assets
 inferno-assets:
-	$(PYTHON) tools/stage-inferno.py --source "$(INFERNO_ROOT)" --output "$(CURDIR)/app/assets/inferno"
+	$(PYTHON) tools/stage-inferno.py --source "$(INFERNO_ROOT)" --output "$(CURDIR)/app/assets/inferno" $(if $(filter 1,$(INFERNO_BUNDLE_RUNTIME)),,--disabled)
 
 QUIET_ = @
 QUIET = $(QUIET_$(V))
@@ -40,13 +41,13 @@ ohand-app-full:
 inferno-full: inferno-assets
 #	export NDK_MODULE_PATH=$(PWD)
 	android update project -p $(PWD)/app --target 1
-	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)"
+	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
 inferno: inferno-assets
 #	export NDK_MODULE_PATH=$(PWD)
-	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)"
+	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)" INFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME)
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 

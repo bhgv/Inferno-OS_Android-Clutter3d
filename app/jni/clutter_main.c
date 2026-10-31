@@ -1564,8 +1564,8 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
   clutter_actor_set_background_color (stage, CLUTTER_COLOR_Black);
 
   if(aapp == NULL || aapp->window == NULL || aapp->activity == NULL ||
-     ioa_prepare_storage(aapp->activity->internalDataPath, aapp->activity->assetManager) != 0){
-      LOGE("Cannot prepare native Inferno runtime storage");
+     ioa_prepare_storage(aapp->activity->assetManager) != 0){
+      LOGE("Cannot access /sdcard/Inferno; check shared-storage permissions");
       return FALSE;
   }
   Xsize = ANativeWindow_getWidth(aapp->window);

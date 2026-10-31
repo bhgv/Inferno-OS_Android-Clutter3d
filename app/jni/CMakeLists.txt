@@ -2,6 +2,9 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+option(INFERNO_BUNDLE_RUNTIME "Provision bundled runtime into /sdcard/Inferno" OFF)
+
+
 
 
 set(CLUTTER "clutter" CACHE STRING "Native renderer selection")
@@ -139,6 +142,10 @@ endif()
 
 add_library(native-audio STATIC native-audio.c)
 
+
+if(INFERNO_BUNDLE_RUNTIME)
+    target_compile_definitions(inferno_os_app PRIVATE INFERNO_BUNDLE_RUNTIME=1)
+endif()
 
 # now build app's shared lib
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")

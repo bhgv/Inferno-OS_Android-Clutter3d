@@ -5,24 +5,31 @@ This series adds no Java source or JNI calls. Existing audio code is unchanged.
 
 ## Runtime files
 
-`make inferno-assets INFERNO_ROOT=/path/to/Inferno` stages runtime files under
-`app/assets/inferno`. Both `make inferno` and `make inferno-full` run staging
-before ndk-build and Ant. Compile the Limbo runtime tree first: staging requires
-`dis/emuinit.dis`. It packages dis, lib, fonts, icons, optional usr/inferno,
-empty mount directories and a bounded manifest, rather than source or host tools.
+Runtime files are used exclusively from `/sdcard/Inferno`. By default the APK
+contains no runtime assets; populate this existing tree yourself, including
+dis/emuinit.dis. No internal-directory fallback exists. Private trees created
+by the withdrawn installer are neither migrated nor deleted automatically.
 
-At native startup the installer uses `ANativeActivity.internalDataPath/Inferno`.
-It creates missing directories and files using AAssetManager, writes through a
-temporary file, and preserves existing user files. A failed extraction can be
-retried. If assets are absent, a manually provisioned private root containing
-`dis/emuinit.dis` is accepted. Uninstalling the app removes this private storage.
-It needs no shared-storage permission and avoids the version-dependent
-`/sdcard/Inferno` access rules. Private storage is not a public file-manager
-folder; public document import/export is not implemented by this change.
+To opt into bundling and extraction of missing runtime files directly into the
+shared directory, build with:
 
-The installer supplies INFERNO_FILES_DIR and a process-local EXTERNAL_STORAGE
-compatibility value for the older bundled amain. The core resolver in the current
-Inferno experiment branch also understands the native private directory.
+```
+make inferno INFERNO_BUNDLE_RUNTIME=1 INFERNO_ROOT=/path/to/Inferno
+```
+
+The default is INFERNO_BUNDLE_RUNTIME=0. Both make inferno and inferno-full stage
+assets only when enabled, and remove the generated asset tree when disabled.
+Existing destination files are preserved; failed extraction is retried on the
+next launch. The CMake alternative uses -DINFERNO_BUNDLE_RUNTIME=ON and requires
+running tools/stage-inferno.py separately to prepare app/assets/inferno.
+Direct ndk-build likewise needs staged assets and INFERNO_BUNDLE_RUNTIME=1.
+Execution always uses /sdcard/Inferno, with no asset-backed runtime or private copy.
+
+Native startup validates shared-directory access and sets EXTERNAL_STORAGE to
+/sdcard only for compatibility with the older bundled amain. It neither uses
+internalDataPath nor supplies INFERNO_FILES_DIR. If access fails, startup reports
+an explicit error. Android's shared-storage permissions still apply; access on
+every Android version has not been established. No private fallback is used.
 
 ## One transform for rendering and input
 
@@ -74,7 +81,7 @@ checkout explicitly rather than assuming the link contains current archives.
 ## Validation and limits
 
 Run `python3 tests/gles-input.py`, `python3 tests/gles-startup.py`,
-`python3 tests/native-storage.py`, and `python3 tests/cmake-abis.py`.
+`python3 tests/shared-storage.py`, and `python3 tests/cmake-abis.py`.
 The input test executes extracted production callbacks and backend translator
 against bounded host Android/Clutter interfaces: 3312 active predicates, including
 rotation, insets, inverse mapping, multi-touch, cancellation and timestamp wrap.
@@ -85,8 +92,15 @@ predicate after two checks.
 
 The startup test links a separate emu fixture archive through the actual GNU
 linker wrapper, checks parsed -g, alignment, allocation bounds and repeat guards.
-The installer test exercises 14 actual packaging/filesystem/retry predicates.
+The shared-storage test checks exact path requests, required permissions,
+compatibility environment and missing/non-directory/denied paths using bounded
+host filesystem interfaces.
 CMake configuration checks three archive selections and unsupported ABI rejection.
 These are host checks, not an NDK compilation, APK installation, physical touch
 calibration or GPU rendering test. No Android device/SDK or rebuilt Clutter stack
 was available for end-to-end verification.
+
+`python3 tests/native-storage.py` also exercises enabled provisioning against a
+host asset adapter and emulated shared mount: 14 packaging/extraction/retry and
+asset-disable predicates. Existing files are preserved. Both provisioning modes
+are checked in actual CMake configuration; Android device testing remains open.

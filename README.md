@@ -9,7 +9,7 @@ it is based on the last [official sources from Vitanuova](https://bitbucket.org/
 ## What is working now
 * Gui. for compatibility main gui app is `wm/awm` (it loads wm/awm after start). sources are in the `/appl/awm` and `/appl/alib`,
 * Touch screen. GLES canvas coordinates are inverted into the logical Inferno desktop; stable touch IDs provide mouse masks 1, 2 and 4.
-* Files. Runtime assets are installed into the native app-private `Inferno` directory. See [native storage and GLES build notes](doc/native-gles.md).
+* Files. Runtime files remain exclusively in `/sdcard/Inferno`; optional APK provisioning writes missing files directly there.
 * Network. Both styx and the regular tcp connections (permission),
 
 ## What was changed

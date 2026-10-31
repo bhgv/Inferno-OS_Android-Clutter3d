@@ -19,6 +19,8 @@ INFERNO_LIB := $(INFERNO_ROOT)/Android/$(INFERNO_OBJTYPE)/lib
 
 $(call import-add-path,$(LOCAL_PATH)/../..)
 
+INFERNO_BUNDLE_RUNTIME ?= 0
+
 LOCAL_MODULE    := inferno_os_app
 LOCAL_SRC_FILES := clutter_main.c native-audio.c clutter-utils.c inferno_storage.c inferno_viewport.c
 LOCAL_LDFLAGS += -Wl,--wrap=libinit
@@ -102,6 +104,7 @@ LOCAL_STATIC_LIBRARIES := mx gdk-pixbuf clutter json-glib soup atk cogl-pango pa
 LOCAL_ARM_MODE := arm
 LOCAL_CFLAGS := 				\
 	-Wall					\
+	-DINFERNO_BUNDLE_RUNTIME=$(INFERNO_BUNDLE_RUNTIME) \
 	-DCOGL_ENABLE_EXPERIMENTAL_API		\
 	-I$(LOCAL_INC)				\
 	-I$(LOCAL_INC)/mx-2.0			\
