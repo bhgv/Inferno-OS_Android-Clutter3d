@@ -5,10 +5,23 @@ include $(CLEAR_VARS)
 LOCAL_INC := $(PWD)/../install/include
 LOCAL_LIB := $(PWD)/../install/lib
 
+INFERNO_ROOT ?= $(abspath $(LOCAL_PATH)/../../inferno-os)
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+INFERNO_OBJTYPE := arm
+else ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+INFERNO_OBJTYPE := arm64
+else ifeq ($(TARGET_ARCH_ABI),x86_64)
+INFERNO_OBJTYPE := amd64
+else
+$(error Unsupported Inferno ABI: $(TARGET_ARCH_ABI))
+endif
+INFERNO_LIB := $(INFERNO_ROOT)/Android/$(INFERNO_OBJTYPE)/lib
+
 $(call import-add-path,$(LOCAL_PATH)/../..)
 
 LOCAL_MODULE    := inferno_os_app
-LOCAL_SRC_FILES := clutter_main.c native-audio.c clutter-utils.c
+LOCAL_SRC_FILES := clutter_main.c native-audio.c clutter-utils.c inferno_storage.c inferno_viewport.c
+LOCAL_LDFLAGS += -Wl,--wrap=libinit
 LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES \
     -L$(LOCAL_LIB)	\
     -lgdk_pixbuf-2.0	\
@@ -39,9 +52,9 @@ LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES \
     -lffi		\
     -lintl		\
     \
-    -L$(PWD)/../inferno-os/Android/arm/lib \
+    -L$(INFERNO_LIB) \
     -l9			\
-    $(PWD)/../inferno-os/Android/arm/lib/libfreetype.a	\
+    $(INFERNO_LIB)/libfreetype.a	\
     -lemu		\
     -linterp		\
     -llodepng		\
@@ -54,16 +67,16 @@ LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES \
     -lmemdraw		\
     -lsec		\
     -ltk		\
-    $(PWD)/../inferno-os/Android/arm/lib/libfreetype.a	\
+    $(INFERNO_LIB)/libfreetype.a	\
     -lmp		\
     -l9			\
     -lemu		\
 
 
 
-#    -L$(PWD)/../inferno-os/Android/arm/lib \
+#    -L$(INFERNO_LIB) \
 #    -l9			\
-#    $(PWD)/../inferno-os/Android/arm/lib/libfreetype.a	\
+#    $(INFERNO_LIB)/libfreetype.a	\
 #    -lemu		\
 #    -linterp		\
 #    -llodepng		\
@@ -76,14 +89,14 @@ LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES \
 #    -lmemdraw		\
 #    -lsec		\
 #    -ltk		\
-#    $(PWD)/../inferno-os/Android/arm/lib/libfreetype.a	\
+#    $(INFERNO_LIB)/libfreetype.a	\
 #    -lmp		\
 #    -l9			\
 #    -lemu		\
 
 #    -lfreetype		\
 
-#    $(PWD)/../inferno-os/Android/arm/lib/lib9.a		\
+#    $(INFERNO_LIB)/lib9.a		\
 
 LOCAL_STATIC_LIBRARIES := mx gdk-pixbuf clutter json-glib soup atk cogl-pango pangocairo pangoft2 pango fontconfig libxml2 cairo-gobject cairo pixman png jpeg freetype cogl gio gobject gmodule gthread glib-android glib iconv libffi gettext
 LOCAL_ARM_MODE := arm

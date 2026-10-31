@@ -1,3 +1,11 @@
+.DEFAULT_GOAL := help
+PYTHON ?= python3
+INFERNO_ROOT ?= $(CURDIR)/inferno-os
+
+.PHONY: inferno-assets
+inferno-assets:
+	$(PYTHON) tools/stage-inferno.py --source "$(INFERNO_ROOT)" --output "$(CURDIR)/app/assets/inferno"
+
 QUIET_ = @
 QUIET = $(QUIET_$(V))
 
@@ -29,16 +37,16 @@ ohand-app-full:
 	cd $(PWD)/ohand && ant debug
 	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
-inferno-full:
+inferno-full: inferno-assets
 #	export NDK_MODULE_PATH=$(PWD)
 	android update project -p $(PWD)/app --target 1
-	cd $(PWD)/app && ndk-build
+	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)"
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 
-inferno:
+inferno: inferno-assets
 #	export NDK_MODULE_PATH=$(PWD)
-	cd $(PWD)/app && ndk-build
+	cd $(PWD)/app && ndk-build INFERNO_ROOT="$(INFERNO_ROOT)"
 	cd $(PWD)/app && ant debug
 #	adb install -r $(PWD)/ohand/bin/NativeActivity-debug.apk
 

@@ -8,8 +8,8 @@ it is based on the last [official sources from Vitanuova](https://bitbucket.org/
 
 ## What is working now
 * Gui. for compatibility main gui app is `wm/awm` (it loads wm/awm after start). sources are in the `/appl/awm` and `/appl/alib`,
-* Touch screen. Only single touches. Don't know where to use multitouches in the Inferno,
-* Files. File-tree are stored in the `/sdcard/Inferno` folder (permission), 
+* Touch screen. GLES canvas coordinates are inverted into the logical Inferno desktop; stable touch IDs provide mouse masks 1, 2 and 4.
+* Files. Runtime assets are installed into the native app-private `Inferno` directory. See [native storage and GLES build notes](doc/native-gles.md).
 * Network. Both styx and the regular tcp connections (permission),
 
 ## What was changed

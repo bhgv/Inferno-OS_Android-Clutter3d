@@ -134,6 +134,49 @@ clutter_android_application_get_default (void)
 }
 
 
+/* Keep Clutter allocation, Cogl's EGL surface size and subsequent picking in one coordinate space. */
+static void
+update_android_stage_geometry(struct android_app *app)
+{
+    ClutterStage *stage;
+    ClutterStageWindow *window;
+    ClutterStageCogl *stage_cogl;
+    int width, height;
+
+    if(app == NULL || app->window == NULL)
+        return;
+    width = ANativeWindow_getWidth(app->window);
+    height = ANativeWindow_getHeight(app->window);
+    if(width <= 0 || height <= 0)
+        return;
+    stage = clutter_stage_manager_get_default_stage(clutter_stage_manager_get_default());
+    if(stage == NULL)
+        return;
+    window = _clutter_stage_get_window(stage);
+    if(window != NULL){
+        stage_cogl = CLUTTER_STAGE_COGL(window);
+        if(stage_cogl->onscreen != NULL)
+            cogl_android_onscreen_update_size(stage_cogl->onscreen, width, height);
+    }
+    clutter_actor_set_size(CLUTTER_ACTOR(stage), width, height);
+    clutter_actor_queue_relayout(CLUTTER_ACTOR(stage));
+    clutter_actor_queue_redraw(CLUTTER_ACTOR(stage));
+}
+
+
+/* Emit normal stage activation changes so native clients can release captured gestures. */
+static void
+update_android_stage_focus(gboolean active)
+{
+    ClutterStage *stage;
+
+    stage = clutter_stage_manager_get_default_stage(clutter_stage_manager_get_default());
+    if(stage != NULL)
+        _clutter_stage_update_state(stage, active ? 0 : CLUTTER_STAGE_STATE_ACTIVATED,
+            active ? CLUTTER_STAGE_STATE_ACTIVATED : 0);
+}
+
+
 /*
  * Process the next main command.
  */
@@ -202,6 +245,7 @@ clutter_android_handle_cmd (struct android_app *app,
             }
 
           application->have_window = TRUE;
+          update_android_stage_geometry(app);
 
           if (application->wait_for_window)
             {
@@ -214,6 +258,7 @@ clutter_android_handle_cmd (struct android_app *app,
     case APP_CMD_TERM_WINDOW:
       /* The window is being hidden or closed, clean it up */
       DEBUG_APP ("command: TERM_WINDOW");
+      update_android_stage_focus(FALSE);
       application->have_window = FALSE;
       if (application->state == CLUTTER_ANDROID_APPLICATION_STATE_DESTROYED)
         {
@@ -243,54 +288,21 @@ clutter_android_handle_cmd (struct android_app *app,
       break;
 
     case APP_CMD_WINDOW_RESIZED:
-      DEBUG_APP ("command: window resized!");
-      if (app->window != NULL)
-        {
-          int32_t width = ANativeWindow_getWidth (app->window);
-          int32_t height = ANativeWindow_getHeight (app->window);
-          ClutterStage *stage = clutter_stage_manager_get_default_stage (clutter_stage_manager_get_default ());
-
-          DEBUG_APP ("resizing stage @ %ix%i", width, height);
-          clutter_actor_set_size (CLUTTER_ACTOR (stage), width, height);
-        }
-      break;
-
     case APP_CMD_WINDOW_REDRAW_NEEDED:
-      DEBUG_APP ("command: REDRAW_NEEDED");
-      if (app->window != NULL)
-        {
-          int32_t width = ANativeWindow_getWidth (app->window);
-          int32_t height = ANativeWindow_getHeight (app->window);
-          ClutterStage *stage = clutter_stage_manager_get_default_stage (clutter_stage_manager_get_default ());
-          ClutterStageCogl *stage_cogl = CLUTTER_STAGE_COGL (_clutter_stage_get_window (stage));
-
-          DEBUG_APP ("stage size %fx%f",
-                     clutter_actor_get_width (CLUTTER_ACTOR (stage)),
-                     clutter_actor_get_height (CLUTTER_ACTOR (stage)));
-          if (clutter_actor_get_width (CLUTTER_ACTOR (stage)) != width ||
-              clutter_actor_get_height (CLUTTER_ACTOR (stage)) != height)
-            {
-              DEBUG_APP ("resizing stage @ %ix%i", width, height);
-              cogl_android_onscreen_update_size (stage_cogl->onscreen,
-                                                 width, height);
-              clutter_actor_queue_relayout (CLUTTER_ACTOR (stage));
-              /* clutter_actor_set_size (CLUTTER_ACTOR (stage), width, height); */
-            }
-        }
-      break;
-
     case APP_CMD_CONTENT_RECT_CHANGED:
-      DEBUG_APP ("command: CONTENT_RECT_CHANGED");
+      update_android_stage_geometry(app);
       break;
 
     case APP_CMD_GAINED_FOCUS:
       DEBUG_APP ("command: GAINED_FOCUS");
+      update_android_stage_focus(TRUE);
       break;
 
     case APP_CMD_LOST_FOCUS:
       /* When our app loses focus, we stop monitoring the accelerometer.
        * This is to avoid consuming battery while not being used. */
       DEBUG_APP ("command: LOST_FOCUS");
+      update_android_stage_focus(FALSE);
       break;
 
     case APP_CMD_RESUME:
@@ -344,7 +356,7 @@ translate_motion_event_to_pointer_event (AInputEvent *a_event)
       event->button.button = 1;
       event->button.click_count = 1;
       event->button.device = pointer_device;
-      event->button.time = AMotionEvent_getEventTime (a_event);
+      event->button.time = (guint32)(AMotionEvent_getEventTime (a_event)/1000000);
       event->button.x = AMotionEvent_getX (a_event, 0);
       event->button.y = AMotionEvent_getY (a_event, 0);
       break;
@@ -355,7 +367,7 @@ translate_motion_event_to_pointer_event (AInputEvent *a_event)
       event->button.button = 1;
       event->button.click_count = 1;
       event->button.device = pointer_device;
-      event->button.time = AMotionEvent_getEventTime (a_event);
+      event->button.time = (guint32)(AMotionEvent_getEventTime (a_event)/1000000);
       event->button.x = AMotionEvent_getX (a_event, 0);
       event->button.y = AMotionEvent_getY (a_event, 0);
       break;
@@ -366,7 +378,7 @@ translate_motion_event_to_pointer_event (AInputEvent *a_event)
       event->motion.device = pointer_device;
        /* TODO: Following line is a massive hack for touch screen */
       event->motion.modifier_state = CLUTTER_BUTTON1_MASK;
-      event->motion.time = AMotionEvent_getEventTime (a_event);
+      event->motion.time = (guint32)(AMotionEvent_getEventTime (a_event)/1000000);
       event->motion.x = AMotionEvent_getX (a_event, 0);
       event->motion.y = AMotionEvent_getY (a_event, 0);
       break;
@@ -386,104 +398,74 @@ translate_motion_event_to_pointer_event (AInputEvent *a_event)
   return TRUE;
 }
 
+/* Preserve Android contact identities; cancellation applies to every active pointer, and Clutter time is ms. */
 static gboolean
-translate_motion_event_to_touch_event (ClutterAndroidApplication *application,
-                                       AInputEvent *a_event)
+translate_motion_event_to_touch_event(ClutterAndroidApplication *application, AInputEvent *a_event)
 {
-  int32_t pointer_index;
-  int32_t i, nb_pointers;
-  int32_t action;
-  int64_t current_time;
-  ClutterStage *stage;
-  ClutterEvent *event;
-  ClutterDeviceManager *manager;
-  ClutterInputDevice *pointer_device;
-  ClutterBackendAndroid *backend;
+    int32_t pointer_index, i, nb_pointers, action, current_id;
+    int64_t current_time;
+    ClutterStage *stage;
+    ClutterEvent *event;
+    ClutterDeviceManager *manager;
+    ClutterInputDevice *pointer_device;
+    ClutterBackendAndroid *backend;
+    ClutterEventType type;
 
-  backend = (ClutterBackendAndroid *) clutter_get_default_backend ();
-
-  stage =
-    clutter_stage_manager_get_default_stage (clutter_stage_manager_get_default ());
-
-  manager = clutter_device_manager_get_default ();
-  pointer_device =
-    clutter_device_manager_get_core_device (manager,
-                                            CLUTTER_POINTER_DEVICE);
-  _clutter_input_device_set_stage (pointer_device, stage);
-
-  action = AMotionEvent_getAction (a_event);
-  pointer_index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >>
-    AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-  action &= AMOTION_EVENT_ACTION_MASK;
-  nb_pointers = AMotionEvent_getPointerCount (a_event);
-
-  current_time = AMotionEvent_getEventTime (a_event);
-
-  DEBUG_TOUCH ("TOUCH id=%i nb_pointers=%i action=%x\n",
-               pointer_index, nb_pointers, action);
-
-  for (i = 0; i < nb_pointers; i++)
-    {
-      int32_t current_id = AMotionEvent_getPointerId (a_event, i);
-
-      if (i == pointer_index)
-        {
-          switch (action)
-            {
-            case AMOTION_EVENT_ACTION_DOWN:
-            case AMOTION_EVENT_ACTION_POINTER_DOWN:
-              DEBUG_TOUCH ("\ttouch begin on id=%i/%i\n", current_id, i);
-              event = clutter_event_new (CLUTTER_TOUCH_BEGIN);
-              break;
-
-            case AMOTION_EVENT_ACTION_UP:
-            case AMOTION_EVENT_ACTION_POINTER_UP:
-              DEBUG_TOUCH ("\ttouch end on id=%i/%i\n", current_id, i);
-              event = clutter_event_new (CLUTTER_TOUCH_END);
-              break;
-
-            case AMOTION_EVENT_ACTION_OUTSIDE: /* TODO: unsure about this one */
-              DEBUG_TOUCH ("\ttouch outside id=%i/%i!\n", current_id, i);
-              event = clutter_event_new (CLUTTER_TOUCH_CANCEL);
-              break;
-
-            case AMOTION_EVENT_ACTION_CANCEL:
-              DEBUG_TOUCH ("\ttouch cancel id=%i/%i!\n", current_id, i);
-              event = clutter_event_new (CLUTTER_TOUCH_CANCEL);
-              break;
-
-            case AMOTION_EVENT_ACTION_MOVE:
-              event = clutter_event_new (CLUTTER_TOUCH_UPDATE);
-              break;
-
-            default:
-              DEBUG_TOUCH ("\tmeh? action=%i\n", action);
-              continue;
-            }
+    if(application == NULL || a_event == NULL)
+        return FALSE;
+    stage = clutter_stage_manager_get_default_stage(clutter_stage_manager_get_default());
+    manager = clutter_device_manager_get_default();
+    backend = (ClutterBackendAndroid*)clutter_get_default_backend();
+    if(stage == NULL || manager == NULL || backend == NULL)
+        return FALSE;
+    pointer_device = clutter_device_manager_get_core_device(manager, CLUTTER_POINTER_DEVICE);
+    if(pointer_device == NULL)
+        return FALSE;
+    _clutter_input_device_set_stage(pointer_device, stage);
+    action = AMotionEvent_getAction(a_event);
+    pointer_index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+    action &= AMOTION_EVENT_ACTION_MASK;
+    nb_pointers = AMotionEvent_getPointerCount(a_event);
+    if(nb_pointers <= 0 || ((action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_POINTER_DOWN ||
+            action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_POINTER_UP) && pointer_index >= nb_pointers))
+        return FALSE;
+    current_time = AMotionEvent_getEventTime(a_event);
+    for(i = 0; i < nb_pointers; i++){
+        current_id = AMotionEvent_getPointerId(a_event, i);
+        if(current_id < 0)
+            continue;
+        switch(action){
+        case AMOTION_EVENT_ACTION_DOWN:
+        case AMOTION_EVENT_ACTION_POINTER_DOWN:
+            type = i == pointer_index ? CLUTTER_TOUCH_BEGIN : CLUTTER_TOUCH_UPDATE;
+            break;
+        case AMOTION_EVENT_ACTION_UP:
+        case AMOTION_EVENT_ACTION_POINTER_UP:
+            type = i == pointer_index ? CLUTTER_TOUCH_END : CLUTTER_TOUCH_UPDATE;
+            break;
+        case AMOTION_EVENT_ACTION_MOVE:
+            type = CLUTTER_TOUCH_UPDATE;
+            break;
+        case AMOTION_EVENT_ACTION_OUTSIDE:
+        case AMOTION_EVENT_ACTION_CANCEL:
+            type = CLUTTER_TOUCH_CANCEL;
+            break;
+        default:
+            return FALSE;
         }
-      else
-        {
-          DEBUG_TOUCH ("\ttouch update on id=%i\n", current_id);
-          event = clutter_event_new (CLUTTER_TOUCH_UPDATE);
-        }
-
-      event->touch.time = current_time;
-      event->touch.x = AMotionEvent_getX (a_event, i);
-      event->touch.y = AMotionEvent_getY (a_event, i);
-      event->touch.device = pointer_device;
-      event->touch.modifier_state = application->modifier_state;
-      /* TODO: We should be allocating proper structures for
-         sequences, but for now it's ok (that explains the ugly kludge
-         with + 1) */
-      event->touch.sequence = (gpointer) (current_id + 1);
-
-      event->any.stage = stage;
-
-      _clutter_event_source_android_push_event (backend->android_source, event);
+        event = clutter_event_new(type);
+        event->touch.time = current_time < 0 ? 0 : (guint32)((guint64)current_time/1000000);
+        event->touch.x = AMotionEvent_getX(a_event, i);
+        event->touch.y = AMotionEvent_getY(a_event, i);
+        event->touch.device = pointer_device;
+        event->touch.modifier_state = application->modifier_state;
+        event->touch.sequence = (gpointer)(guintptr)((guint)current_id+1);
+        event->any.stage = stage;
+        _clutter_event_source_android_push_event(backend->android_source, event);
     }
-
-  return TRUE;
+    return TRUE;
 }
+
 
 static gboolean
 translate_motion_event (AInputEvent *a_event)

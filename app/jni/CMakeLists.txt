@@ -1,23 +1,33 @@
 
-SET(CMAKE_C_COMPILER "gcc-4.8")
-SET(CMAKE_CXX_COMPILER "g++-4.8")
 
 cmake_minimum_required(VERSION 3.4.1)
 
 
 
-set(CLUTTER "clutter")
+set(CLUTTER "clutter" CACHE STRING "Native renderer selection")
 
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 
 get_filename_component(INFERNO_OS_PROJ_DIR
-                       ${CMAKE_CURRENT_SOURCE_DIR}/../../../.. ABSOLUTE)
+                       ${CMAKE_CURRENT_SOURCE_DIR}/../.. ABSOLUTE)
 
 
 # configure import libs
-set(infrlib_DIR ${INFERNO_OS_PROJ_DIR}/inferno-os/Android/arm/lib)
+set(INFERNO_ROOT "${INFERNO_OS_PROJ_DIR}/inferno-os" CACHE PATH "Inferno source/library tree")
+set(CLUTTER_PREFIX "${INFERNO_OS_PROJ_DIR}/install" CACHE PATH "Matching Clutter/Cogl ABI installation")
+if(ANDROID_ABI STREQUAL "armeabi-v7a")
+    set(INFERNO_OBJTYPE arm)
+elseif(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(INFERNO_OBJTYPE arm64)
+elseif(ANDROID_ABI STREQUAL "x86_64")
+    set(INFERNO_OBJTYPE amd64)
+else()
+    message(FATAL_ERROR "Unsupported Inferno ABI: ${ANDROID_ABI}")
+endif()
+set(infrlib_DIR "${INFERNO_ROOT}/Android/${INFERNO_OBJTYPE}/lib")
+link_directories("${CLUTTER_PREFIX}/lib")
 
 add_library(emu STATIC IMPORTED)
 set_target_properties(emu PROPERTIES IMPORTED_LOCATION
@@ -99,28 +109,26 @@ add_library(native_app_glue STATIC
 if( "${CLUTTER}" STREQUAL "clutter")
 	include_directories( 
 #		${ANDROID_NDK}/sources/android/native_app_glue
-		${INFERNO_OS_PROJ_DIR}/ext/include 
-		${INFERNO_OS_PROJ_DIR}/ext/include 
-		${INFERNO_OS_PROJ_DIR}/ext/include 
-		${INFERNO_OS_PROJ_DIR}/ext/include 
-		${INFERNO_OS_PROJ_DIR}/ext/include 
-		${INFERNO_OS_PROJ_DIR}/ext/include/mx-2.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/json-glib-1.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/atk-1.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/pango-1.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/cairo 
-		${INFERNO_OS_PROJ_DIR}/ext/include/glib-2.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/glib-android-1.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/clutter-1.0 
-		${INFERNO_OS_PROJ_DIR}/ext/include/cogl 
-		${INFERNO_OS_PROJ_DIR}/ext/fake-android-application
+		${CLUTTER_PREFIX}/include
+		${CLUTTER_PREFIX}/include/mx-2.0
+		${CLUTTER_PREFIX}/include/json-glib-1.0
+		${CLUTTER_PREFIX}/include/atk-1.0
+		${CLUTTER_PREFIX}/include/pango-1.0
+		${CLUTTER_PREFIX}/include/cairo
+		${CLUTTER_PREFIX}/include/glib-2.0
+		${CLUTTER_PREFIX}/lib/glib-2.0/include
+		${CLUTTER_PREFIX}/include/glib-android-1.0
+		${CLUTTER_PREFIX}/include/clutter-1.0
+		${CLUTTER_PREFIX}/include/cogl
 	)
 
-	add_library(fake_android_application STATIC
-		${INFERNO_OS_PROJ_DIR}/ext/fake-android-application/fake-android-application.c)
+
 
 	add_library(inferno_os_app SHARED
 		clutter_main.c
+		clutter-utils.c
+		inferno_storage.c
+		inferno_viewport.c
 	)
 else()
 	add_library(inferno_os_app SHARED
@@ -140,15 +148,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -fPIC -fPIE")
 # Export ANativeActivity_onCreate(),
 # Refer to: https://github.com/android-ndk/ndk/issues/381.
 set(CMAKE_SHARED_LINKER_FLAGS
-    "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate -fPIC -fPIE -L${infrlib_DIR} -L${INFERNO_OS_PROJ_DIR}/ext/lib"
+    "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate -fPIC -fPIE"
 )
 # -flto -Wl,--allow-multiple-definition
+
 
 # add lib dependencies
 
 if( "${CLUTTER}" STREQUAL "clutter")
 
 target_link_libraries(inferno_os_app 
+    -Wl,--wrap=libinit
     native-audio 
     android 
     log 

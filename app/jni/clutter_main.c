@@ -29,6 +29,10 @@
 # include <clutter/android/clutter-android-application-private.h>
 
 #include "clutter-utils.h"
+#include "inferno_storage.h"
+#include "inferno_viewport.h"
+#include <limits.h>
+#include <math.h>
 
 
 
@@ -108,6 +112,9 @@ extern void amain();
 
 
 ClutterActor *stage = NULL;
+static ClutterActor *inferno_canvas; // Common logical parent for every Inferno GLES actor.
+static IoaViewport inferno_viewport; // Exact stage placement used for both display and input.
+static IoaPointer inferno_pointer; // Native touch sequences owned by the Clutter event thread.
 ClutterActor *desktop = NULL;
 ClutterActor *topmost = NULL;
 //ClutterContent *image = NULL;
@@ -131,6 +138,9 @@ cogl_texture_new_from_buffer (const unsigned char *pixels, int width, int height
 extern void xmouse_btn(int, int, int);
 
 
+
+
+static void sync_surface_geometry(void);
 
 
 static ActorData *
@@ -170,6 +180,7 @@ _update_progress_cb (ClutterTimeline *timeline,
    */
 //  copy = cogl_material_copy (material);
 
+  sync_surface_geometry();
   progress = clutter_timeline_get_progress (timeline);
 
   /* Create the constant color to be used when combining the two
@@ -201,50 +212,134 @@ _update_progress_cb (ClutterTimeline *timeline,
 
 
 
-static gboolean
-on_touch (ClutterActor *actor,
-          ClutterEvent *event)
+/* Release the gesture once on geometry changes, focus loss or stage destruction. */
+static void
+cancel_inferno_pointer(void)
 {
-	ClutterTouchEvent *te = (ClutterTouchEvent*)event;
-	float x,y;
-	
-	static int btn = 0;
-	
-	
-	clutter_event_get_coords(event, &x,&y);
-	
-//	clutter_actor_transform_stage_point ( /*desktop*/actor, x, y, &x, &y);
+	IoaPointerEvent output;
 
-	LOGI("%s: %d e_type=%d (%d), x=%f, y=%f, Xsz=%d, Ysz=%d", __func__, __LINE__, clutter_event_type(event), event->type, x, y, Xsize, Ysize );
-
-  switch (event->type)
-    {
-    case CLUTTER_TOUCH_BEGIN:
-//      return clutter_text_press (actor, (ClutterEvent *) event);
-		btn++;
-		xmouse_btn((int)x, (int)y, btn);
-		break;
-
-    case CLUTTER_TOUCH_END:
-    case CLUTTER_TOUCH_CANCEL:
-      /* TODO: the cancel case probably need a special handler */
-//      return clutter_text_release (actor, (ClutterEvent *) event);
-		btn--;
-		xmouse_btn((int)x, (int)y, btn);
-		break;
-
-    case CLUTTER_TOUCH_UPDATE:
-//      return clutter_text_move (actor, (ClutterEvent *) event);
-		xmouse_btn((int)x, (int)y, btn);
-		break;
-
-    default:
-      break;
-    }
+	if(ioa_pointer_event(&inferno_pointer, IoaTouchCancel, 0, 0, 0, Xsize, Ysize, &output))
+		xmouse_btn(output.x, output.y, output.buttons);
+}
 
 
-//  return CLUTTER_EVENT_PROPAGATE;
-  return CLUTTER_EVENT_STOP;
+/* Keep logical buffers immutable; move/scale the shared canvas into the current visible area. */
+static void
+sync_surface_geometry(void)
+{
+	IoaViewport next;
+	int width, height;
+	ARect content;
+
+	if(stage == NULL || inferno_canvas == NULL || aapp == NULL || aapp->window == NULL){
+		cancel_inferno_pointer();
+		inferno_viewport.scale = 0;
+		return;
+	}
+	width = ANativeWindow_getWidth(aapp->window);
+	height = ANativeWindow_getHeight(aapp->window);
+	content = aapp->contentRect;
+	if(!ioa_viewport_fit(&next, Xsize, Ysize, width, height,
+			content.left, content.top, content.right, content.bottom)){
+		cancel_inferno_pointer();
+		inferno_viewport.scale = 0;
+		clutter_actor_hide(inferno_canvas);
+		return;
+	}
+	if(next.x != inferno_viewport.x || next.y != inferno_viewport.y || next.scale != inferno_viewport.scale)
+		cancel_inferno_pointer();
+	inferno_viewport = next;
+	clutter_actor_set_position(inferno_canvas, next.x, next.y);
+	clutter_actor_set_scale(inferno_canvas, next.scale, next.scale);
+	clutter_actor_show(inferno_canvas);
+}
+
+
+/* The linker wrapper runs after amain parses -g and before Inferno starts its workers. */
+extern void __real_libinit(void *imod);
+
+
+/* Allocate the final, word-aligned desktop before attachscreen can publish its buffer. */
+void
+__wrap_libinit(void *imod)
+{
+	size_t bytes;
+
+	Xsize &= ~3;
+	if(inferno_canvas == NULL || xscreendata != NULL || !ioa_surface_bytes(Xsize, Ysize, &bytes)){
+		LOGE("Invalid or repeated Inferno screen initialization");
+		return;
+	}
+	xscreendata = calloc(1, bytes);
+	if(xscreendata == NULL){
+		LOGE("Cannot allocate Inferno logical screen");
+		return;
+	}
+	clutter_actor_set_size(inferno_canvas, Xsize, Ysize);
+	clutter_actor_set_clip(inferno_canvas, 0, 0, Xsize, Ysize);
+	sync_surface_geometry();
+	__real_libinit(imod);
+}
+
+
+/* Deactivation cannot leave a logical mouse button held after Android hides its window. */
+static void
+on_stage_deactivate(ClutterActor *actor, gpointer user_data)
+{
+	(void)actor;
+	(void)user_data;
+	cancel_inferno_pointer();
+}
+
+
+/* Stop geometry polling before destruction invalidates the stage and its canvas. */
+static void
+on_stage_destroy(ClutterActor *actor, gpointer user_data)
+{
+	on_stage_deactivate(actor, user_data);
+	if(desktop_timeline != NULL)
+		clutter_timeline_stop(desktop_timeline);
+	inferno_viewport.scale = 0;
+	inferno_canvas = NULL;
+	stage = NULL;
+}
+
+
+/* Capture once at the stage, then invert the actual GLES actor transform into Inferno space. */
+static gboolean
+on_touch(ClutterActor *actor, ClutterEvent *event, gpointer user_data)
+{
+	IoaPointerEvent output;
+	ClutterEventType event_type;
+	gfloat x, y, logical_x, logical_y;
+	int type;
+
+	(void)actor;
+	(void)user_data;
+	event_type = clutter_event_type(event);
+	switch(event_type){
+	case CLUTTER_TOUCH_BEGIN: type = IoaTouchBegin; break;
+	case CLUTTER_TOUCH_UPDATE: type = IoaTouchUpdate; break;
+	case CLUTTER_TOUCH_END: type = IoaTouchEnd; break;
+	case CLUTTER_TOUCH_CANCEL:
+		cancel_inferno_pointer();
+		return CLUTTER_EVENT_STOP;
+	default:
+		return CLUTTER_EVENT_PROPAGATE;
+	}
+	sync_surface_geometry();
+	if(inferno_canvas == NULL || aapp == NULL || aapp->window == NULL || inferno_viewport.scale <= 0)
+		return CLUTTER_EVENT_STOP;
+	clutter_event_get_coords(event, &x, &y);
+	if(!clutter_actor_transform_stage_point(inferno_canvas, x, y, &logical_x, &logical_y)){
+		if(type == IoaTouchEnd)
+			cancel_inferno_pointer();
+		return CLUTTER_EVENT_STOP;
+	}
+	if(ioa_pointer_event(&inferno_pointer, type, (uintptr_t)clutter_event_get_event_sequence(event),
+			logical_x, logical_y, Xsize, Ysize, &output))
+		xmouse_btn(output.x, output.y, output.buttons);
+	return CLUTTER_EVENT_STOP;
 }
 
 
@@ -476,14 +571,12 @@ on_paint (ClutterActor *actor, gpointer user_data)
 	guint8 opacity;
   
 	ActorData *actor_data = (ActorData*)user_data;
-	char *buffer = actor_data->buffer;
+	char *buffer;
 	int w, h;
 
-	if(del_flag || buffer < 0x10000)
+	if(del_flag || actor_data == NULL || actor_data->buffer == NULL || actor_data->actor == NULL)
 		return;
-  
-	if(actor_data == NULL || actor_data->buffer == NULL || actor_data->actor == NULL)
-		return;
+	buffer = actor_data->buffer;
   
 //	CoglColor color_1, color_2;
 //	CoglTextureVertex vertices[4];
@@ -772,19 +865,19 @@ attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 
 	if(!actor_data_root){
 //LOGI("%s: %d", __func__, __LINE__);
-		g_signal_connect (actor, "touch-event", G_CALLBACK (on_touch), actor_data); //NULL);
+
 //LOGI("%s: %d", __func__, __LINE__);
 		clutter_actor_set_reactive (actor, TRUE);
 //	}else{
 		desktop = actor;
 		g_signal_connect (desktop_timeline, "new-frame", G_CALLBACK (_update_progress_cb), desktop);
 		clutter_timeline_start(desktop_timeline);
-		clutter_actor_add_child (stage, actor);
+		clutter_actor_add_child (inferno_canvas, actor);
 	}else{
-		clutter_actor_add_child (/*desktop*/stage, actor);
+		clutter_actor_add_child (inferno_canvas, actor);
 	}
 	g_signal_connect (actor, "paint", G_CALLBACK (on_paint), actor_data);
-//	clutter_actor_add_child (stage, actor);
+//	clutter_actor_add_child (inferno_canvas, actor);
 
 //	clutter_actor_raise_top(actor);
 //	topmost = actor;
@@ -1429,6 +1522,7 @@ LOGI("%s: %d", __func__, __LINE__);
 #endif
 
 
+/* Prepare native storage and the GLES canvas before parsing Inferno startup options. */
 static gboolean
 test_init (ClutterAndroidApplication *application,
            TestData*                  data)
@@ -1444,7 +1538,8 @@ test_init (ClutterAndroidApplication *application,
   ClutterAction *action;
 
   GError *error = NULL;
-  
+  IoaViewport initial_view;
+
   /*struct android_app* */aapp = application->android_application;
 
 LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
@@ -1466,22 +1561,31 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
   //stage = clutter_stage_manager_get_default_stage (
   //									clutter_stage_manager_get_default ()
   //									);
-  clutter_actor_set_background_color (stage, CLUTTER_COLOR_Red);
+  clutter_actor_set_background_color (stage, CLUTTER_COLOR_Black);
 
-  if (aapp != NULL && aapp->window != NULL){
- // 	ANativeActivity_setWindowFlags (aapp->activity,
- //                                            AWINDOW_FLAG_FULLSCREEN, 0);
- 	//clutter_stage_set_fullscreen(stage, 1);
-
-	Xsize = ANativeWindow_getWidth (aapp->window);
-	Ysize = ANativeWindow_getHeight (aapp->window);
-	//clutter_actor_get_size(stage, &Xsize, &Ysize);
-
-	LOGI ("sizing stage @ %ix%i, fps=%d", Xsize, Ysize, clutter_get_default_frame_rate());
-	clutter_actor_set_size (CLUTTER_ACTOR (stage), Xsize, Ysize);
-	
-//	clutter_set_default_frame_rate(15);
+  if(aapp == NULL || aapp->window == NULL || aapp->activity == NULL ||
+     ioa_prepare_storage(aapp->activity->internalDataPath, aapp->activity->assetManager) != 0){
+      LOGE("Cannot prepare native Inferno runtime storage");
+      return FALSE;
   }
+  Xsize = ANativeWindow_getWidth(aapp->window);
+  Ysize = ANativeWindow_getHeight(aapp->window);
+  if(!ioa_viewport_fit(&initial_view, Xsize, Ysize, Xsize, Ysize,
+          aapp->contentRect.left, aapp->contentRect.top, aapp->contentRect.right, aapp->contentRect.bottom))
+      return FALSE;
+  /* The initial logical desktop occupies the available content rectangle, not hidden system bars. */
+  Xsize = initial_view.available_width;
+  Ysize = initial_view.available_height;
+  clutter_actor_set_size(stage, ANativeWindow_getWidth(aapp->window), ANativeWindow_getHeight(aapp->window));
+  inferno_canvas = clutter_actor_new();
+  clutter_actor_set_size(inferno_canvas, Xsize, Ysize);
+  clutter_actor_set_clip(inferno_canvas, 0, 0, Xsize, Ysize);
+  clutter_actor_add_child(stage, inferno_canvas);
+  clutter_actor_set_reactive(stage, TRUE);
+  g_signal_connect(stage, "captured-event", G_CALLBACK(on_touch), NULL);
+  g_signal_connect(stage, "deactivate", G_CALLBACK(on_stage_deactivate), NULL);
+  g_signal_connect(stage, "destroy", G_CALLBACK(on_stage_destroy), NULL);
+  sync_surface_geometry();
 
 //#ifndef _PC_VERSION
 //  clutter_stage_set_fullscreen (CLUTTER_STAGE (stage), TRUE);
@@ -1496,8 +1600,6 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
   
   g_signal_connect (stage, "destroy", G_CALLBACK (clutter_main_quit), NULL);
 
-	if(xscreendata == NULL)
-		xscreendata = malloc(Xsize * Ysize * 4);
 		
 	desktop_timeline = clutter_timeline_new(1000);
 	clutter_timeline_set_repeat_count(desktop_timeline, -1);
