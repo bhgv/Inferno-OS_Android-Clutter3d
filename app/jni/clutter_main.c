@@ -779,7 +779,8 @@ int is_shaders_inited = 0;
 static char* default_win_shader = NULL;
 
 
-ClutterActor*
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static ClutterActor*
 ioa_render_attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 	GError *error = NULL;
 	ClutterActor *actor;
@@ -910,7 +911,8 @@ ioa_render_attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, i
 
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_add_layer(ClutterActor *actor, int layerid){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorLayer *layer;
@@ -945,7 +947,8 @@ LOGI("%s: %d layer=%x", __func__, __LINE__, layer);
 }
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_child_to_layer(ClutterActor *actor, int layerid){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorData *main_actor_data;
@@ -1125,7 +1128,8 @@ LOGI("%s: %d actor=%x, x=%d, y=%d", __func__, __LINE__, actor, x, y);
 }
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y){
 	ActorData *actor_data = find_ActorData(actor);
 	int w, h, i, j;
@@ -1223,13 +1227,14 @@ LOGI("%s: %d", __func__, __LINE__);
 }
 #endif
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_free(ClutterActor *actor){
 	ActorData *act_dat_ptr, **pactor_data, *actor_data = find_ActorData(actor);
 	char *buffer;
 
 	ActorLayer *layer;
-	ActorData *main_actor_data, *tmp_actor_data, **ptmp_actor_data;
+	ActorData *main_actor_data, *tmp_actor_data = NULL, **ptmp_actor_data;
 	
 	if(actor_data == NULL)
 		return;
@@ -1300,8 +1305,8 @@ LOGI("%s: %d", __func__, __LINE__);
 	free(buffer);
 //LOGI("%s: %d", __func__, __LINE__);
 
-	if(actor_data->effect)
-		g_object_unref(actor_data->effect);
+	/* clutter_actor_destroy already released its sunk shader-effect reference. */
+	actor_data->effect = NULL;
 
 	free(actor_data);
 //LOGI("%s: %d", __func__, __LINE__);
@@ -1310,7 +1315,8 @@ LOGI("%s: %d", __func__, __LINE__);
 }
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_tofront(ClutterActor *actor){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorLayer *layer;
@@ -1349,7 +1355,8 @@ LOGI("%s: %d", __func__, __LINE__);
 }
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_torear(ClutterActor *actor){
 	ActorData *actor_data = find_ActorData(actor);
 	if(actor_data == NULL)
@@ -1361,7 +1368,8 @@ ioa_render_clutter_ext_win_torear(ClutterActor *actor){
 }
 
 
-void
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static void
 ioa_render_clutter_ext_win_repaint(ClutterActor *actor){
 	GError *error = NULL;
 	ActorData *actor_data;// = find_ActorData(actor);
@@ -1419,7 +1427,8 @@ ioa_render_clutter_ext_win_repaint(ClutterActor *actor){
 }
 
 
-char*
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static char*
 ioa_render_clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int *dwid, int *w, int *h){
 	ActorData *actor_data = find_ActorData(actor);
 	int dx, dy;
@@ -1464,7 +1473,8 @@ ioa_render_clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int
 }
 
 
-int
+/* Execute this renderer operation exclusively on the Clutter owner thread. */
+static int
 ioa_render_clutter_ext_win_get_coords(ClutterActor *actor, int *x, int *y, int *w, int *h){
 	ActorData *actor_data = find_ActorData(actor);
 	
