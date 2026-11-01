@@ -34,6 +34,7 @@
 #include "inferno_ui_queue.h"
 #include <limits.h>
 #include <math.h>
+#include <unistd.h>
 
 
 
@@ -805,6 +806,8 @@ ioa_render_attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, i
 		return NULL;
 	
 	actor = clutter_texture_new ();
+	/* Pixel uploads must not renegotiate the logical window allocation. */
+	clutter_texture_set_sync_size(CLUTTER_TEXTURE(actor), FALSE);
 	clutter_actor_set_position(actor, min_x, min_y);
 	clutter_actor_set_size(actor, w, h);
 	clutter_actor_set_background_color (actor, CLUTTER_COLOR_Orange);
@@ -1128,56 +1131,24 @@ LOGI("%s: %d actor=%x, x=%d, y=%d", __func__, __LINE__, actor, x, y);
 }
 
 
-/* Execute this renderer operation exclusively on the Clutter owner thread. */
+/* Clip visible pixels without reallocating or changing the borrowed image's stride. */
 static void
-ioa_render_clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y){
-	ActorData *actor_data = find_ActorData(actor);
-	int w, h, i, j;
-	unsigned int *po, *pn;
-	char *buf2;
-	
-	if(actor_data == NULL)
+ioa_render_clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y)
+{
+	ActorData *data = find_ActorData(actor);
+	int left, top, right, bottom;
+
+	if(data == NULL)
 		return;
-
-	w = (max_x-min_x); //+(min_x-actor_data->x);
-	h = (max_y-min_y); //+(min_y-actor_data->y);
-	
-//	if(actor_data->w < w || actor_data->h < h){
-	if(min_x == 0 || min_y == 0){
-LOGI("%s: %d actor=%x, old_buf=%x, wh=(%d, %d)", __func__, __LINE__, actor, actor_data->buffer, w, h);
-
-		buf2 = malloc((w+1)*(h+1)*4);
-
-		if(actor_data->buffer){
-			pn = buf2;
-			po = actor_data->buffer;
-		
-/**
-			for(i=0; i < actor_data->h && i < h; i++){
-				for(j=0; j < actor_data->w && j < w; j++){
-					pn[j] = po[j];
-				}
-				pn += w;
-				po += actor_data->w;
-			}
-/**/
-			free(actor_data->buffer);
-//LOGI("%s: %d", __func__, __LINE__);
-//			actor_data->buffer = realloc(actor_data->buffer, (w+1)*(h+1)*4);
-//LOGI("%s: %d", __func__, __LINE__);
-		}
-		actor_data->buffer = buf2;
-		
-		actor_data->w = w;
-		actor_data->h = h;
-
-//		actor_data->x = min_x;
-//		actor_data->y = min_y;
-		
-//		clutter_actor_set_position(actor, min_x, min_y);
-		clutter_actor_set_size(actor, w, h);
+	left = min_x < 0 ? 0 : min_x;
+	top = min_y < 0 ? 0 : min_y;
+	right = max_x > data->w ? data->w : max_x;
+	bottom = max_y > data->h ? data->h : max_y;
+	if(right <= left || bottom <= top){
+		clutter_actor_set_clip(actor, 0, 0, 0, 0);
+		return;
 	}
-//LOGI("%s: %d new_buf=%x", __func__, __LINE__, actor_data->buffer);
+	clutter_actor_set_clip(actor, left, top, right-left, bottom-top);
 }
 
 
@@ -2017,6 +1988,9 @@ clutter_android_main (ClutterAndroidApplication *application)
 //LOGI("%s: %d", __func__, __LINE__);
 
   clutter_android_application_run (application);
+  /* VM workers retain this activity's native context; a new activity needs a fresh VM. */
+  if(storage_startup.booted)
+      _exit(0);
   ioa_ui_stop();
   ioa_storage_finish();
 //LOGI("%s: %d", __func__, __LINE__);
