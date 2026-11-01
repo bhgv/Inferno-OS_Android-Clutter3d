@@ -16,9 +16,10 @@ typedef int gboolean;
 typedef unsigned int guint;
 typedef void *gpointer;
 typedef struct { unsigned char r,g,b,a; } ClutterColor;
-typedef struct { float width,height; char text[512]; } ClutterActor;
+typedef struct { float width,height; char text[1024]; } ClutterActor;
 typedef struct { AAssetManager *assetManager; } Activity;
-typedef struct { Activity *activity; void *window; } AndroidApp;
+typedef struct { int left,top,right,bottom; } Rect;
+typedef struct { Activity *activity; void *window; Rect contentRect; } AndroidApp;
 typedef struct { AndroidApp *android_application; } ClutterAndroidApplication;
 typedef struct { int unused; } TestData;
 #define TRUE 1 // GLib boolean boundary.
@@ -53,7 +54,7 @@ int ioa_prepare_storage_progress(AAssetManager *m,IoaStorageProgress cb,void *ar
         if(!cb(i,3,"dis/wm/awm.dis",arg)) return -1;
         usleep(20000);
     }
-    if(fail){ errno=EIO; return -1; }
+    if(fail){ errno=fail; return -1; }
     return 0;
 }
 
@@ -113,7 +114,7 @@ static void pump(void)
 /* Exercise immediate reuse, successful asynchronous extraction, visible failure and destroy cancellation. */
 int main(void)
 {
-    Activity activity={NULL}; AndroidApp app={&activity,(void*)1};
+    Activity activity={NULL}; AndroidApp app={&activity,(void*)1,{0,80,320,640}};
     ClutterAndroidApplication application={&app}; TestData data={0};
     owner=pthread_self();ready=1;
     if(!test_init(&application,&data)||boots!=1||assetcalls||storage_startup.started)abort();
@@ -122,10 +123,15 @@ int main(void)
     if(!test_init(&application,&data))abort();
     pump();ioa_storage_finish();
     if(boots!=1||assetcalls!=1||storage_startup.done!=3||storage_startup.total!=3)abort();
-    reset();fail=1;
+    reset();fail=EIO;
     if(!test_init(&application,&data))abort();
     pump();
     if(boots||!strstr(storage_startup.label->text,"failed"))abort();
+    ioa_storage_finish();reset();fail=EACCES;
+    if(!test_init(&application,&data))abort();
+    pump();
+    if(boots || !strstr(storage_startup.label->text,"Storage access denied") ||
+       !strstr(storage_startup.label->text,"Settings") || !strstr(storage_startup.label->text,"reopen"))abort();
     ioa_storage_finish();reset();fail=0;
     if(!test_init(&application,&data))abort();
     ioa_storage_destroyed(stage,&storage_startup);ioa_storage_finish();

@@ -78,10 +78,10 @@ static gboolean
 ioa_storage_tick(gpointer argument)
 {
 	IoaStartup *state = argument;
-	char message[512], path[256];
+	char message[1024], path[256];
 	unsigned int done, total, percent;
 	int finished, result, saved, cancelled;
-	float width;
+	float width, top;
 
 	pthread_mutex_lock(&state->lock);
 	done = state->done; total = state->total; finished = state->finished;
@@ -91,10 +91,17 @@ ioa_storage_tick(gpointer argument)
 	if(cancelled){ state->timer = 0; return FALSE; }
 	percent = total == 0 ? 0 : (unsigned int)((100ULL*done)/total);
 	width = clutter_actor_get_width(stage);
+    top = state->application == NULL ? 112 : state->application->android_application->contentRect.top + 24;
+    if(top < 64) top = 64;
+    clutter_actor_set_position(state->bar, 16, top);
+    clutter_actor_set_position(state->label, 16, top+24);
 	clutter_actor_set_size(state->panel, width, clutter_actor_get_height(stage));
 	clutter_actor_set_size(state->bar, (width > 32 ? width-32 : 1)*percent/100, 16);
 	if(finished && result != 0)
-		snprintf(message, sizeof(message), "Inferno startup failed (%d)\nCheck /sdcard/Inferno and AWM files.\n%s", saved, path);
+		snprintf(message, sizeof(message),
+            saved == EACCES || saved == EPERM ?
+            "Storage access denied (%d).\nCannot create/read /sdcard/Inferno.\nAndroid Settings > Apps > Inferno GLES > Permissions: allow Files / Storage.\nOn newer Android also check Special app access > All files access.\nThen close and reopen Inferno.\nNo VM has been started.\n%s" :
+            "Inferno startup failed (%d).\nCheck /sdcard/Inferno structure, free space and bundled runtime.\nClose and reopen after correcting the problem.\n%s", saved, path);
 	else
 		snprintf(message, sizeof(message), "Preparing /sdcard/Inferno\n%u%%  (%u / %u files)\n%s", percent, done, total, path);
 	clutter_actor_set_width(state->label, width > 32 ? width-32 : 1);
@@ -146,11 +153,11 @@ test_init(ClutterAndroidApplication *application, TestData *data)
 	state->label = clutter_text_new_with_text("Sans 16", "Checking bundled Inferno files...");
 	clutter_text_set_color(CLUTTER_TEXT(state->label), &white);
 	clutter_text_set_line_wrap(CLUTTER_TEXT(state->label), TRUE);
-	clutter_actor_set_position(state->label, 16, 40);
+	clutter_actor_set_position(state->label, 16, 136);
 	clutter_actor_add_child(state->panel, state->label);
 	state->bar = clutter_actor_new();
 	clutter_actor_set_background_color(state->bar, &fill);
-	clutter_actor_set_position(state->bar, 16, 16);
+	clutter_actor_set_position(state->bar, 16, 112);
 	clutter_actor_add_child(state->panel, state->bar);
 	clutter_actor_set_size(stage, ANativeWindow_getWidth(application->android_application->window),
 	                               ANativeWindow_getHeight(application->android_application->window));
