@@ -93,10 +93,9 @@ static struct android_app *aapp = &app;
 static IoaViewport inferno_viewport;
 static IoaPointer inferno_pointer;
 static int Xsize = 540, Ysize = 960; // Immutable logical desktop for the integration oracle.
-static int checks, deliveries, transform_ok = 1; // Active predicates and published mouse-event observations.
+static int checks, deliveries; // Active predicates and published mouse-event observations.
 static int surface_width, surface_height, relayouts, redraws, activated; // Backend geometry/focus observations.
 static IoaPointerEvent last; // Actual event emitted to Inferno's mouse boundary.
-static ClutterActor *transformed; // Actor passed to Clutter's inverse-transform interface.
 static ClutterEvent queue[64]; // Detached events produced by the actual translation function.
 static int queued;
 static ClutterDeviceManager manager;
@@ -165,19 +164,6 @@ static void *clutter_event_get_event_sequence(ClutterEvent *event) { return even
 
 /* Preserve event type filtering from the real captured-event callback. */
 static int clutter_event_type(ClutterEvent *event) { return event->type; }
-
-
-/* Model the public Clutter inverse-affine interface and allow its failure to be exercised. */
-static int
-clutter_actor_transform_stage_point(ClutterActor *actor, float x, float y, float *px, float *py)
-{
-	transformed = actor;
-	if(!transform_ok || actor->sx <= 0 || actor->sy <= 0)
-		return 0;
-	*px = (x-actor->x)/actor->sx;
-	*py = (y-actor->y)/actor->sy;
-	return 1;
-}
 
 
 /* Supply the one stage used by the actual backend's public stage lookup. */
@@ -297,7 +283,7 @@ main(void)
 	sync_surface_geometry();
 	check(canvas_actor.sx==2 && canvas_actor.sy==2 && canvas_actor.x==0 && canvas_actor.y==40);
 	touch(CLUTTER_TOUCH_BEGIN,9,200,440);
-	check(transformed==inferno_canvas && last.x==100 && last.y==200 && last.buttons==1);
+	check(last.x==100 && last.y==200 && last.buttons==1);
 	touch(CLUTTER_TOUCH_BEGIN,77,1000,1800);
 	check(last.x==100 && last.y==200 && last.buttons==2);
 	touch(CLUTTER_TOUCH_BEGIN,123,800,1200);
@@ -336,10 +322,8 @@ main(void)
 	touch(CLUTTER_TOUCH_BEGIN,13,0,0);
 	check(deliveries==old && inferno_pointer.count==0);
 	touch(CLUTTER_TOUCH_BEGIN,13,1000,500);
-	transform_ok=0;
 	touch(CLUTTER_TOUCH_END,13,1000,500);
 	check(last.buttons==0 && inferno_pointer.count==0);
-	transform_ok=1;
 	touch(CLUTTER_TOUCH_BEGIN,14,1000,500);
 	app.window=NULL;
 	sync_surface_geometry();

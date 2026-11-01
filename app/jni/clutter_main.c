@@ -31,6 +31,7 @@
 #include "clutter-utils.h"
 #include "inferno_storage.h"
 #include "inferno_viewport.h"
+#include "inferno_ui_queue.h"
 #include <limits.h>
 #include <math.h>
 
@@ -297,6 +298,7 @@ static void
 on_stage_destroy(ClutterActor *actor, gpointer user_data)
 {
 	on_stage_deactivate(actor, user_data);
+	ioa_ui_stop();
 	if(desktop_timeline != NULL)
 		clutter_timeline_stop(desktop_timeline);
 	inferno_viewport.scale = 0;
@@ -331,11 +333,13 @@ on_touch(ClutterActor *actor, ClutterEvent *event, gpointer user_data)
 	if(inferno_canvas == NULL || aapp == NULL || aapp->window == NULL || inferno_viewport.scale <= 0)
 		return CLUTTER_EVENT_STOP;
 	clutter_event_get_coords(event, &x, &y);
-	if(!clutter_actor_transform_stage_point(inferno_canvas, x, y, &logical_x, &logical_y)){
+	if(inferno_viewport.scale <= 0){
 		if(type == IoaTouchEnd)
 			cancel_inferno_pointer();
 		return CLUTTER_EVENT_STOP;
 	}
+	logical_x = (x-inferno_viewport.x)/inferno_viewport.scale;
+	logical_y = (y-inferno_viewport.y)/inferno_viewport.scale;
 	if(ioa_pointer_event(&inferno_pointer, type, (uintptr_t)clutter_event_get_event_sequence(event),
 			logical_x, logical_y, Xsize, Ysize, &output))
 		xmouse_btn(output.x, output.y, output.buttons);
@@ -776,7 +780,7 @@ static char* default_win_shader = NULL;
 
 
 ClutterActor*
-attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
+ioa_render_attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 	GError *error = NULL;
 	ClutterActor *actor;
 	ClutterTimeline *timeline = NULL;
@@ -790,7 +794,10 @@ attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 	if(buffer == NULL || w <= 1 || h <= 1)
 		return NULL;
 	
-	buffer_int = malloc((w+1)*(h+1)*4);
+	size_t allocation;
+	if(!ioa_surface_bytes(w, h, &allocation))
+		return NULL;
+	buffer_int = calloc(1, allocation);
 //LOGI("%s: %d buf=%x, w=%d, h=%d", __func__, __LINE__, buffer_int, w, h);
 
 	if(buffer_int == NULL)
@@ -803,6 +810,11 @@ attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 //LOGI("%s: %d actor=%x", __func__, __LINE__, actor);
 
 	actor_data = malloc(sizeof(ActorData));
+    if(actor_data == NULL){
+        free(buffer_int);
+        clutter_actor_destroy(actor);
+        return NULL;
+    }
 	memset(actor_data, 0, sizeof(ActorData));
 //LOGI("%s: %d actor_data=%x", __func__, __LINE__, actor_data);
 	actor_data->actor = CLUTTER_ACTOR(actor);
@@ -832,9 +844,17 @@ attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 			fseek(f, 0L, SEEK_END);
 			sz = ftell(f);
 			fseek(f, 0L, SEEK_SET);
-			default_win_shader = malloc(sz + 1);
-			fread(default_win_shader, sz, 1, f);
-			fclose(f);
+            if(sz < 0 || sz > 1024*1024){
+                fclose(f);
+                f = NULL;
+            }else
+                default_win_shader = malloc((size_t)sz + 1);
+            if(default_win_shader != NULL){
+                size_t received = fread(default_win_shader, 1, (size_t)sz, f);
+                default_win_shader[received] = 0;
+            }
+            if(f != NULL)
+                fclose(f);
 		}
 		is_shaders_inited = 1;
 	}
@@ -891,7 +911,7 @@ attach_clutter_actor(char* buffer, int min_x, int min_y, int max_x, int max_y){
 
 
 void
-clutter_ext_win_add_layer(ClutterActor *actor, int layerid){
+ioa_render_clutter_ext_win_add_layer(ClutterActor *actor, int layerid){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorLayer *layer;
 
@@ -926,7 +946,7 @@ LOGI("%s: %d layer=%x", __func__, __LINE__, layer);
 
 
 void
-clutter_ext_win_child_to_layer(ClutterActor *actor, int layerid){
+ioa_render_clutter_ext_win_child_to_layer(ClutterActor *actor, int layerid){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorData *main_actor_data;
 	ActorLayer *layer;
@@ -983,7 +1003,7 @@ LOGI("%s: %d main_actor_data=%x", __func__, __LINE__, main_actor_data);
 
 
 void 
-clutter_move_actor(ClutterActor *actor, int x, int y){
+ioa_render_clutter_move_actor(ClutterActor *actor, int x, int y){
 	ActorData *actor_data = find_ActorData(actor);
 	ClutterEffect *effect;
 	
@@ -1106,7 +1126,7 @@ LOGI("%s: %d actor=%x, x=%d, y=%d", __func__, __LINE__, actor, x, y);
 
 
 void
-clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y){
+ioa_render_clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y){
 	ActorData *actor_data = find_ActorData(actor);
 	int w, h, i, j;
 	unsigned int *po, *pn;
@@ -1204,7 +1224,7 @@ LOGI("%s: %d", __func__, __LINE__);
 #endif
 
 void
-clutter_ext_win_free(ClutterActor *actor){
+ioa_render_clutter_ext_win_free(ClutterActor *actor){
 	ActorData *act_dat_ptr, **pactor_data, *actor_data = find_ActorData(actor);
 	char *buffer;
 
@@ -1277,7 +1297,7 @@ LOGI("%s: %d", __func__, __LINE__);
 	buffer = actor_data->buffer;
 	actor_data->buffer = NULL;
 
-	free(actor_data->buffer);
+	free(buffer);
 //LOGI("%s: %d", __func__, __LINE__);
 
 	if(actor_data->effect)
@@ -1291,7 +1311,7 @@ LOGI("%s: %d", __func__, __LINE__);
 
 
 void
-clutter_ext_win_tofront(ClutterActor *actor){
+ioa_render_clutter_ext_win_tofront(ClutterActor *actor){
 	ActorData *actor_data = find_ActorData(actor);
 	ActorLayer *layer;
 	ActorData *main_actor_data, *tmp_actor_data;
@@ -1330,7 +1350,7 @@ LOGI("%s: %d", __func__, __LINE__);
 
 
 void
-clutter_ext_win_torear(ClutterActor *actor){
+ioa_render_clutter_ext_win_torear(ClutterActor *actor){
 	ActorData *actor_data = find_ActorData(actor);
 	if(actor_data == NULL)
 		return;
@@ -1342,7 +1362,7 @@ clutter_ext_win_torear(ClutterActor *actor){
 
 
 void
-clutter_ext_win_repaint(ClutterActor *actor){
+ioa_render_clutter_ext_win_repaint(ClutterActor *actor){
 	GError *error = NULL;
 	ActorData *actor_data;// = find_ActorData(actor);
 	char *buffer, *buffer_ext;
@@ -1381,6 +1401,7 @@ clutter_ext_win_repaint(ClutterActor *actor){
 		}
 	}
 	actor_data->is_changed = 1;
+	clutter_actor_queue_redraw(actor);
 #endif
 
 //LOGI("%s: %d", __func__, __LINE__);
@@ -1399,7 +1420,7 @@ clutter_ext_win_repaint(ClutterActor *actor){
 
 
 char*
-clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int *dwid, int *w, int *h){
+ioa_render_clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int *dwid, int *w, int *h){
 	ActorData *actor_data = find_ActorData(actor);
 	int dx, dy;
 	int wid;
@@ -1444,7 +1465,7 @@ clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int *dwid, int
 
 
 int
-clutter_ext_win_get_coords(ClutterActor *actor, int *x, int *y, int *w, int *h){
+ioa_render_clutter_ext_win_get_coords(ClutterActor *actor, int *x, int *y, int *w, int *h){
 	ActorData *actor_data = find_ActorData(actor);
 	
 	if(actor_data == NULL)
@@ -1520,6 +1541,174 @@ LOGI("%s: %d", __func__, __LINE__);
 #endif
 }
 #endif
+
+
+typedef struct IoaRenderCall IoaRenderCall;
+
+struct IoaRenderCall {
+    unsigned int kind; // Renderer operation selected by the public wrapper.
+    ClutterActor *actor, *created; // Borrowed target and created actor returned synchronously.
+    char *buffer, *pixels; // Borrowed VM storage and returned drawing address.
+    int x, y, w, h, id; // Logical rectangle or layer identity, never Android touch coordinates.
+    int *ox, *oy, *ow, *oh, *stride; // Borrowed synchronous result locations.
+    int value; // Boolean result for geometry lookup.
+};
+
+
+/* Execute every native actor operation only on the Clutter context owner. */
+static void
+ioa_render_dispatch(void *argument)
+{
+    IoaRenderCall *c = argument;
+
+    switch(c->kind){
+    case 0: c->created = ioa_render_attach_clutter_actor(c->buffer,c->x,c->y,c->w,c->h); break; // attach_clutter_actor.
+    case 1: ioa_render_clutter_ext_win_add_layer(c->actor,c->id); break; // clutter_ext_win_add_layer.
+    case 2: ioa_render_clutter_ext_win_child_to_layer(c->actor,c->id); break; // clutter_ext_win_child_to_layer.
+    case 3: ioa_render_clutter_move_actor(c->actor,c->x,c->y); break; // clutter_move_actor.
+    case 4: ioa_render_clutter_clipr_actor(c->actor,c->x,c->y,c->w,c->h); break; // clutter_clipr_actor.
+    case 5: ioa_render_clutter_ext_win_free(c->actor); break; // clutter_ext_win_free.
+    case 6: ioa_render_clutter_ext_win_tofront(c->actor); break; // clutter_ext_win_tofront.
+    case 7: ioa_render_clutter_ext_win_torear(c->actor); break; // clutter_ext_win_torear.
+    case 8: ioa_render_clutter_ext_win_repaint(c->actor); break; // clutter_ext_win_repaint.
+    case 9: c->pixels = ioa_render_clutter_ext_win_get_dp(c->actor,c->x,c->y,c->stride,c->ow,c->oh); break; // clutter_ext_win_get_dp.
+    case 10: c->value = ioa_render_clutter_ext_win_get_coords(c->actor,c->ox,c->oy,c->ow,c->oh); break; // clutter_ext_win_get_coords.
+    }
+}
+
+
+/* Marshal attach_clutter_actor while its caller keeps native storage alive. */
+ClutterActor*
+attach_clutter_actor(char *buffer, int min_x, int min_y, int max_x, int max_y)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=0; c.buffer=buffer; c.x=min_x; c.y=min_y; c.w=max_x; c.h=max_y;
+    if(!ioa_ui_call(ioa_render_dispatch, &c))
+        return NULL;
+    return c.created;
+}
+
+
+/* Marshal clutter_ext_win_add_layer while its caller keeps native storage alive. */
+void
+clutter_ext_win_add_layer(ClutterActor *actor, int layerid)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=1; c.actor=actor; c.id=layerid;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_child_to_layer while its caller keeps native storage alive. */
+void
+clutter_ext_win_child_to_layer(ClutterActor *actor, int layerid)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=2; c.actor=actor; c.id=layerid;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_move_actor while its caller keeps native storage alive. */
+void
+clutter_move_actor(ClutterActor *actor, int x, int y)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=3; c.actor=actor; c.x=x; c.y=y;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_clipr_actor while its caller keeps native storage alive. */
+void
+clutter_clipr_actor(ClutterActor *actor, int min_x, int min_y, int max_x, int max_y)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=4; c.actor=actor; c.x=min_x; c.y=min_y; c.w=max_x; c.h=max_y;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_free while its caller keeps native storage alive. */
+void
+clutter_ext_win_free(ClutterActor *actor)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=5; c.actor=actor;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_tofront while its caller keeps native storage alive. */
+void
+clutter_ext_win_tofront(ClutterActor *actor)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=6; c.actor=actor;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_torear while its caller keeps native storage alive. */
+void
+clutter_ext_win_torear(ClutterActor *actor)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=7; c.actor=actor;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_repaint while its caller keeps native storage alive. */
+void
+clutter_ext_win_repaint(ClutterActor *actor)
+{
+    IoaRenderCall c = {0};
+
+    c.kind=8; c.actor=actor;
+    ioa_ui_call(ioa_render_dispatch, &c);
+}
+
+
+/* Marshal clutter_ext_win_get_dp while its caller keeps native storage alive. */
+char*
+clutter_ext_win_get_dp(ClutterActor *actor, int dst_x, int dst_y, int *dwid, int *w, int *h)
+{
+    IoaRenderCall c = {0};
+
+    if(dwid != NULL) *dwid = 0;
+    if(w != NULL) *w = 0;
+    if(h != NULL) *h = 0;
+    c.kind=9; c.actor=actor; c.x=dst_x; c.y=dst_y; c.stride=dwid; c.ow=w; c.oh=h;
+    if(!ioa_ui_call(ioa_render_dispatch, &c))
+        return NULL;
+    return c.pixels;
+}
+
+
+/* Marshal clutter_ext_win_get_coords while its caller keeps native storage alive. */
+int
+clutter_ext_win_get_coords(ClutterActor *actor, int *x, int *y, int *w, int *h)
+{
+    IoaRenderCall c = {0};
+
+    if(x != NULL) *x = 0;
+    if(y != NULL) *y = 0;
+    if(w != NULL) *w = 0;
+    if(h != NULL) *h = 0;
+    c.kind=10; c.actor=actor; c.ox=x; c.oy=y; c.ow=w; c.oh=h;
+    if(!ioa_ui_call(ioa_render_dispatch, &c))
+        return 0;
+    return c.value;
+}
 
 
 /* Prepare native storage and the GLES canvas before parsing Inferno startup options. */
@@ -1798,6 +1987,8 @@ clutter_android_main (ClutterAndroidApplication *application)
 {
   TestData data;
 
+  ioa_ui_start();
+
 //LOGI("%s: %d", __func__, __LINE__);
   memset (&data, 0, sizeof (TestData));
 //LOGI("%s: %d", __func__, __LINE__);
@@ -1816,6 +2007,7 @@ clutter_android_main (ClutterAndroidApplication *application)
 //LOGI("%s: %d", __func__, __LINE__);
 
   clutter_android_application_run (application);
+  ioa_ui_stop();
   ioa_storage_finish();
 //LOGI("%s: %d", __func__, __LINE__);
 }
@@ -1835,7 +2027,7 @@ void int_refresh(int xb_, int yb_, int xe_, int ye_){
 		actor_data = actor_data->next
 	){
 		if(actor_data->actor){
-			clutter_ext_win_repaint(actor_data->actor);
+			ioa_render_clutter_ext_win_repaint(actor_data->actor);
 		}
 	}
 	
