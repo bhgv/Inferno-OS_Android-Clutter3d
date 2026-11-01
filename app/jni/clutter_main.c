@@ -2013,74 +2013,26 @@ clutter_android_main (ClutterAndroidApplication *application)
 }
 
 
-void int_refresh(int xb_, int yb_, int xe_, int ye_){
-  ActorData *actor_data;
-  GError *error = NULL;
-//	ClutterContent *image;
-	
-//	if(xscreendata == NULL || stage == NULL || desktop == NULL) return;
+/* Traverse the actor list only on its Clutter owner, including full-screen refreshes. */
+static void
+ioa_render_refresh(void *argument)
+{
+    ActorData *actor_data;
 
-//LOGI("%s: %d", __func__, __LINE__);
-	for(
-		actor_data = actor_data_root; 
-		actor_data != NULL;
-		actor_data = actor_data->next
-	){
-		if(actor_data->actor){
-			ioa_render_clutter_ext_win_repaint(actor_data->actor);
-		}
-	}
-	
-#if 0
-	clutter_texture_set_from_rgb_data (CLUTTER_TEXTURE (desktop),
-                                     xscreendata,
-                                     TRUE,
-                                     Xsize, Ysize,
-                                     Xsize * 4,
-                                     4,
-                                     CLUTTER_TEXTURE_NONE,
-                                     &error);
-#endif
+    (void)argument;
+    for(actor_data = actor_data_root; actor_data != NULL; actor_data = actor_data->next){
+        if(actor_data->actor != NULL)
+            ioa_render_clutter_ext_win_repaint(actor_data->actor);
+    }
+}
 
-/*
-	if(is_int_refresh){
-		if(xb > xb_)
-			xb = xb_;
-		if(yb > yb_)
-			yb = yb_;
-		if(xe < xe_)
-			xe = xe_;
-		if(ye < ye_)
-			ye = ye_;
-	}else{
-		xb = xb_;
-		xe = xe_;
-		yb = yb_;
-		ye = ye_;
-	}
 
-	is_int_refresh = 1;
-*/
-
-//	image = clutter_image_new();
-/*
-	clutter_image_set_data (CLUTTER_IMAGE (image),
-							xscreendata,
-							COGL_PIXEL_FORMAT_RGBA_8888,  // COGL_PIXEL_FORMAT_RGB_888,
-							Xsize,
-							Ysize,
-							Xsize * 4,
-							NULL);
-*/
-
-/*
-clutter_actor_set_content_scaling_filters (stage,
-							CLUTTER_SCALING_FILTER_TRILINEAR,
-							CLUTTER_SCALING_FILTER_LINEAR);
-clutter_actor_set_content_gravity (stage, CLUTTER_CONTENT_GRAVITY_RESIZE_ASPECT);
-clutter_actor_set_content (stage, image);
-g_object_unref (image);
-*/
+/* Publish a VM refresh through the same owner queue as individual window updates. */
+void
+int_refresh(int min_x, int min_y, int max_x, int max_y)
+{
+    (void)min_x; (void)min_y; (void)max_x; (void)max_y;
+    ioa_ui_call(ioa_render_refresh, NULL);
 }
 
 

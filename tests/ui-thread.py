@@ -18,7 +18,7 @@ struct Source {guint id; gboolean (*fn)(gpointer);void *arg;};
 static struct Source queue[32];
 static pthread_mutex_t queue_lock=PTHREAD_MUTEX_INITIALIZER;
 static guint serial;
-static int calls,done,result;
+static int calls,done,result,refreshes;
 static pthread_t owner;
 
 
@@ -45,6 +45,7 @@ static int g_source_remove(guint id)
     pthread_mutex_unlock(&queue_lock);return found;
 }
 #include "inferno_ui_queue.h"
+/* ACTUAL_REFRESH */
 
 
 /* Observe the actual callback thread and the worker's still-live argument storage. */
@@ -61,6 +62,7 @@ static void *worker(void *unused)
     int value=17;(void)unused;
     result=ioa_ui_call(operation,&value);
     if(result&&value!=18)abort();
+    if(result)int_refresh(0,0,10,10);
     if(!result&&value!=17)abort();
     __atomic_store_n(&done,1,__ATOMIC_RELEASE);return NULL;
 }
@@ -93,18 +95,36 @@ int main(void)
     for(i=0;i<10000;i++){
         int pending;
         pthread_mutex_lock(&ioa_ui_mutex);pending=ioa_ui_pending!=NULL;pthread_mutex_unlock(&ioa_ui_mutex);
-        if(pending)break;usleep(100);
+        if(pending)break;
+        usleep(100);
     }
     if(i==10000)abort();
     ioa_ui_stop();pthread_join(thread,NULL);
-    if(result||calls!=101||pump()||ioa_ui_call(operation,&local))abort();
+    if(result||calls!=101||refreshes!=200||pump()||ioa_ui_call(operation,&local))abort();
     ioa_ui_stop();ioa_ui_start();
     if(!ioa_ui_call(operation,&local)||local!=2)abort();
     ioa_ui_stop();
     puts("PASS native renderer queue: actual worker/UI ownership, 100 synchronous results, cancellation and restart");
 }
 '''
-with tempfile.TemporaryDirectory(prefix='ui-thread-',dir=ROOT) as directory:
+bridge=(ROOT/'app/jni/clutter_main.c').read_text()
+a=bridge.index('/* Traverse the actor list only')
+b=bridge.index('\n\nvoid ioa_showsplash',a)
+stubs=r'''typedef struct ActorData ActorData;
+struct ActorData {ActorData *next; void *actor;};
+static ActorData third={NULL,(void*)2},second={&third,NULL},first={&second,(void*)1};
+static ActorData *actor_data_root=&first;
+
+
+/* Observe the complete real refresh traversal on its owning thread. */
+static void ioa_render_clutter_ext_win_repaint(void *actor)
+{
+    if(!pthread_equal(pthread_self(),owner)||actor==NULL)abort();
+    refreshes++;
+}
+'''
+SOURCE=SOURCE.replace('/* ACTUAL_REFRESH */',stubs+bridge[a:b])
+with tempfile.TemporaryDirectory(prefix='ui-thread-' ,dir=ROOT) as directory:
     p=Path(directory);(p/'test.c').write_text(SOURCE)
     subprocess.run(['cc','-std=gnu99','-O2','-Wall','-Wextra','-fsanitize=undefined','-fno-sanitize-recover=all','-pthread','-I'+str(ROOT/'app/jni'),str(p/'test.c'),'-o',str(p/'test')],check=True)
     subprocess.run([str(p/'test')],check=True,timeout=15)
