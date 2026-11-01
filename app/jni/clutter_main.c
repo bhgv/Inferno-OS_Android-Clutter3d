@@ -1524,10 +1524,9 @@ LOGI("%s: %d", __func__, __LINE__);
 
 /* Prepare native storage and the GLES canvas before parsing Inferno startup options. */
 static gboolean
-test_init (ClutterAndroidApplication *application,
+start_inferno_stage (ClutterAndroidApplication *application,
            TestData*                  data)
 {
-  ClutterInitError init_error;
   ClutterActor *square, *hand, *text, *clone;
   ClutterConstraint *constraint;
   ClutterVertex vertex;
@@ -1548,26 +1547,10 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
 
 	actor_data_root = NULL;
 
-  /* Initialize Clutter */
-  init_error = clutter_init (NULL, NULL);
-  if (init_error <= 0)
-    {
-      g_critical ("Could not initialize clutter");
+  stage = clutter_stage_get_default();
+  clutter_actor_set_background_color(stage, CLUTTER_COLOR_Black);
+  if(aapp == NULL || aapp->window == NULL || aapp->activity == NULL)
       return FALSE;
-    }
-
-  /* Set a background color on the stage */
-  stage = clutter_stage_get_default ();
-  //stage = clutter_stage_manager_get_default_stage (
-  //									clutter_stage_manager_get_default ()
-  //									);
-  clutter_actor_set_background_color (stage, CLUTTER_COLOR_Black);
-
-  if(aapp == NULL || aapp->window == NULL || aapp->activity == NULL ||
-     ioa_prepare_storage(aapp->activity->assetManager) != 0){
-      LOGE("Cannot access /sdcard/Inferno; check shared-storage permissions");
-      return FALSE;
-  }
   Xsize = ANativeWindow_getWidth(aapp->window);
   Ysize = ANativeWindow_getHeight(aapp->window);
   if(!ioa_viewport_fit(&initial_view, Xsize, Ysize, Xsize, Ysize,
@@ -1690,6 +1673,8 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
 	}
 */
 
+  if(ioa_startup_log() != 0)
+      LOGW("Cannot open /sdcard/Inferno/startup.log");
   amain();
 
 
@@ -1805,6 +1790,9 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
   return TRUE;
 }
 
+#include "inferno_startup.h"
+
+
 void
 clutter_android_main (ClutterAndroidApplication *application)
 {
@@ -1828,6 +1816,7 @@ clutter_android_main (ClutterAndroidApplication *application)
 //LOGI("%s: %d", __func__, __LINE__);
 
   clutter_android_application_run (application);
+  ioa_storage_finish();
 //LOGI("%s: %d", __func__, __LINE__);
 }
 
@@ -1906,3 +1895,4 @@ g_object_unref (image);
 void ioa_showsplash(){
 LOGI("%s: %d", __func__, __LINE__);
 }
+
