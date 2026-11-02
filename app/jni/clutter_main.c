@@ -1845,6 +1845,7 @@ LOGI("%s: %d aapp=%x", __func__, __LINE__, aapp);
 
   if(ioa_startup_log() != 0)
       LOGW("Cannot open /sdcard/Inferno/startup.log");
+  fprintf(stderr, "Native GLES renderer; logical=%dx%d; independent-top/display-owner fix 20261102\n", Xsize, Ysize);
   amain();
 
 
